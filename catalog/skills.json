@@ -1,0 +1,389 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "id": "gmf-contribute",
+      "name": "gmf-contribute",
+      "summary": "Add an operation, knowledge note, template or test to GMF without breaking the catalog contract.",
+      "path": "skills/gmf-contribute/SKILL.md",
+      "operations": [
+        "knowledge.search",
+        "plan.validate"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-debug",
+      "name": "gmf-debug",
+      "summary": "Diagnose a failed build, deploy or validation from the exact command, exit code and log tail.",
+      "path": "skills/gmf-debug/SKILL.md",
+      "operations": [
+        "generic.run_tool",
+        "analyze.strings",
+        "knowledge.search"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-implement",
+      "name": "gmf-implement",
+      "summary": "Implement and deploy mod code for an approved plan, one step at a time.",
+      "path": "skills/gmf-implement/SKILL.md",
+      "operations": [
+        "plan.apply",
+        "unity.scaffold",
+        "unity.build",
+        "unity.deploy",
+        "unity.validate",
+        "unreal.scaffold",
+        "unreal.build",
+        "unreal.deploy",
+        "unreal.validate",
+        "generic.backup"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-investigate",
+      "name": "gmf-investigate",
+      "summary": "Investigate a game folder and produce an evidence-backed profile before any mod work.",
+      "path": "skills/gmf-investigate/SKILL.md",
+      "operations": [
+        "game.detect",
+        "game.profile",
+        "game.inventory",
+        "knowledge.search",
+        "analyze.classes",
+        "analyze.objects",
+        "analyze.entrypoints",
+        "analyze.references"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-plan",
+      "name": "gmf-plan",
+      "summary": "Draft, review and validate a plan whose steps, effects and gates match the user's goal.",
+      "path": "skills/gmf-plan/SKILL.md",
+      "operations": [
+        "plan.draft",
+        "plan.validate",
+        "knowledge.search"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-release",
+      "name": "gmf-release",
+      "summary": "Package a finished mod locally and verify its contents and license before release.",
+      "path": "skills/gmf-release/SKILL.md",
+      "operations": [
+        "unity.package",
+        "unreal.package",
+        "generic.hash",
+        "knowledge.search"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-safety",
+      "name": "gmf-safety",
+      "summary": "Use backups, authorizations and anti-cheat risk information correctly before writing into a game.",
+      "path": "skills/gmf-safety/SKILL.md",
+      "operations": [
+        "generic.backup",
+        "generic.restore",
+        "plan.validate",
+        "plan.apply"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "gmf-verify",
+      "name": "gmf-verify",
+      "summary": "Verify each plan step with evidence and report pass, fail and unresolved unknowns.",
+      "path": "skills/gmf-verify/SKILL.md",
+      "operations": [
+        "plan.validate",
+        "game.profile",
+        "unity.validate",
+        "unreal.validate",
+        "generic.hash",
+        "analyze.classes"
+      ],
+      "knowledge": []
+    },
+    {
+      "id": "unity-assets",
+      "name": "unity-assets",
+      "summary": "Use when a Unity mod must extract, inspect, replace or load assets such as textures, models, audio or AssetBundles.",
+      "path": "skills/unity-assets/SKILL.md",
+      "operations": [
+        "unity.extract_assets",
+        "unity.inspect_asset",
+        "unity.replace_asset",
+        "generic.backup"
+      ],
+      "knowledge": [
+        "unity.assets",
+        "unity.asset-tools",
+        "unity.assets.bundles",
+        "unity.assets.textures",
+        "unity.assets.models-audio"
+      ]
+    },
+    {
+      "id": "unity-bepinex",
+      "name": "unity-bepinex",
+      "summary": "Use when a Unity game runs BepInEx 5 or 6 and you must scaffold, build, deploy, validate or package a plugin for it.",
+      "path": "skills/unity-bepinex/SKILL.md",
+      "operations": [
+        "unity.scaffold",
+        "unity.build",
+        "unity.deploy",
+        "unity.validate",
+        "unity.package",
+        "unity.remove_mod"
+      ],
+      "knowledge": [
+        "unity.bepinex",
+        "unity.bepinex.lifecycle"
+      ]
+    },
+    {
+      "id": "unity-harmony",
+      "name": "unity-harmony",
+      "summary": "Use when you must patch a Unity game method with Harmony, reach private members by reflection, or confirm a patch target still exists.",
+      "path": "skills/unity-harmony/SKILL.md",
+      "operations": [
+        "unity.decompile",
+        "unity.normalize_dump",
+        "analyze.classes",
+        "analyze.entrypoints",
+        "unity.validate"
+      ],
+      "knowledge": [
+        "unity.harmony",
+        "unity.harmony.advanced",
+        "unity.reflection"
+      ]
+    },
+    {
+      "id": "unity-il2cpp",
+      "name": "unity-il2cpp",
+      "summary": "Use when the Unity game is IL2CPP and a mod needs interop assemblies, Il2CppInterop patching, or IL2CPP-safe C# patterns.",
+      "path": "skills/unity-il2cpp/SKILL.md",
+      "operations": [
+        "unity.decompile",
+        "unity.normalize_dump",
+        "analyze.classes"
+      ],
+      "knowledge": [
+        "unity.il2cpp.interop",
+        "unity.il2cpp.patching",
+        "unity.csharp.patterns"
+      ]
+    },
+    {
+      "id": "unity-melonloader",
+      "name": "unity-melonloader",
+      "summary": "Use when a Unity game runs MelonLoader and you must scaffold, build, deploy, validate or package a Melon mod for it.",
+      "path": "skills/unity-melonloader/SKILL.md",
+      "operations": [
+        "unity.scaffold",
+        "unity.build",
+        "unity.deploy",
+        "unity.validate",
+        "unity.package"
+      ],
+      "knowledge": [
+        "unity.melonloader"
+      ]
+    },
+    {
+      "id": "unity-testing",
+      "name": "unity-testing",
+      "summary": "Use when a Unity mod needs unit tests, a CI build without game assemblies, or a failure must be debugged from logs and profiling.",
+      "path": "skills/unity-testing/SKILL.md",
+      "operations": [
+        "unity.build",
+        "unity.validate",
+        "generic.run_tool"
+      ],
+      "knowledge": [
+        "unity.testing",
+        "unity.testing.ci",
+        "unity.debugging",
+        "unity.debugging.logs",
+        "unity.debugging.performance"
+      ]
+    },
+    {
+      "id": "unity-translation",
+      "name": "unity-translation",
+      "summary": "Use when a Unity game's text must be translated or localized by a mod, including font fallback for other scripts.",
+      "path": "skills/unity-translation/SKILL.md",
+      "operations": [
+        "unity.scaffold",
+        "unity.decompile",
+        "analyze.strings"
+      ],
+      "knowledge": [
+        "unity.translation"
+      ]
+    },
+    {
+      "id": "unreal-aob",
+      "name": "unreal-aob",
+      "summary": "Use when a UE4SS or PatternSleuth scan fails and a byte-pattern signature must be analyzed, emitted and verified by hand.",
+      "path": "skills/unreal-aob/SKILL.md",
+      "operations": [
+        "unreal.pe_analyze",
+        "unreal.aob_emit",
+        "unreal.aob_verify"
+      ],
+      "knowledge": [
+        "unreal.aob",
+        "unreal.aob.targets",
+        "unreal.aob.degradation"
+      ]
+    },
+    {
+      "id": "unreal-cookbook",
+      "name": "unreal-cookbook",
+      "summary": "Use when writing a concrete UE4SS Lua feature such as noclip, god mode, currency, item spawning, or a mod menu from a proven pattern.",
+      "path": "skills/unreal-cookbook/SKILL.md",
+      "operations": [
+        "unreal.scaffold",
+        "unreal.lua_check",
+        "unreal.deploy"
+      ],
+      "knowledge": [
+        "unreal.cookbook.basic",
+        "unreal.cookbook.advanced",
+        "unreal.modmenu"
+      ]
+    },
+    {
+      "id": "unreal-debugging",
+      "name": "unreal-debugging",
+      "summary": "Use when a UE4SS mod does not load, a hook does not fire, the game crashes with UE4SS attached, or a log or crash stack needs reading.",
+      "path": "skills/unreal-debugging/SKILL.md",
+      "operations": [
+        "unreal.crash_stack",
+        "unreal.ue4ss_settings",
+        "unreal.lua_check",
+        "unreal.validate",
+        "generic.run_tool",
+        "knowledge.search"
+      ],
+      "knowledge": [
+        "unreal.debugging",
+        "unreal.field-notes"
+      ]
+    },
+    {
+      "id": "unreal-dumping",
+      "name": "unreal-dumping",
+      "summary": "Use when a mod needs game-derived data first, such as an object dump, usmap, header dump or static mesh dump.",
+      "path": "skills/unreal-dumping/SKILL.md",
+      "operations": [
+        "unreal.dump",
+        "unreal.deploy_dumper",
+        "unreal.normalize_dump",
+        "analyze.objects"
+      ],
+      "knowledge": [
+        "unreal.dumps",
+        "unreal.dumps.artifacts"
+      ]
+    },
+    {
+      "id": "unreal-object-model",
+      "name": "unreal-object-model",
+      "summary": "Use when you must reason about UObject, UClass, UFunction, FName and properties, or locate a target in an object dump.",
+      "path": "skills/unreal-object-model/SKILL.md",
+      "operations": [
+        "unreal.dump",
+        "unreal.normalize_dump",
+        "analyze.objects",
+        "analyze.classes",
+        "analyze.entrypoints",
+        "unreal.inspect_asset"
+      ],
+      "knowledge": [
+        "unreal.object-model",
+        "unreal.reflection"
+      ]
+    },
+    {
+      "id": "unreal-pak-blueprint",
+      "name": "unreal-pak-blueprint",
+      "summary": "Use when an Unreal task needs pak or IoStore containers, an extracted or edited asset packed as a mod, or a Blueprint mod mounted through the LogicMods folder.",
+      "path": "skills/unreal-pak-blueprint/SKILL.md",
+      "operations": [
+        "unreal.scaffold",
+        "unreal.extract_assets",
+        "unreal.inspect_asset",
+        "unreal.stage_asset",
+        "unreal.pack_mod",
+        "unreal.package",
+        "unreal.deploy",
+        "unreal.remove_mod"
+      ],
+      "knowledge": [
+        "unreal.pak",
+        "unreal.asset-pipeline",
+        "unreal.pak.blueprint"
+      ]
+    },
+    {
+      "id": "unreal-reference-patterns",
+      "name": "unreal-reference-patterns",
+      "summary": "Use when planning a UE4SS Lua feature and you need a proven pattern, a field note or a mined gotcha instead of guessing.",
+      "path": "skills/unreal-reference-patterns/SKILL.md",
+      "operations": [
+        "knowledge.search"
+      ],
+      "knowledge": [
+        "unreal.pattern-index",
+        "unreal.field-notes",
+        "unreal.mined-gotchas"
+      ]
+    },
+    {
+      "id": "unreal-ue4ss-cpp",
+      "name": "unreal-ue4ss-cpp",
+      "summary": "Use when writing or building a native C++ mod against the UE4SS SDK for an Unreal Engine game.",
+      "path": "skills/unreal-ue4ss-cpp/SKILL.md",
+      "operations": [
+        "unreal.scaffold",
+        "unreal.build",
+        "unreal.deploy",
+        "unreal.validate"
+      ],
+      "knowledge": [
+        "unreal.ue4ss.cpp"
+      ]
+    },
+    {
+      "id": "unreal-ue4ss-lua",
+      "name": "unreal-ue4ss-lua",
+      "summary": "Use when writing, hooking, installing or deploying a UE4SS Lua mod for an Unreal Engine game.",
+      "path": "skills/unreal-ue4ss-lua/SKILL.md",
+      "operations": [
+        "unreal.setup_ue4ss",
+        "unreal.ue4ss_settings",
+        "unreal.scaffold",
+        "unreal.deploy",
+        "unreal.validate",
+        "unreal.lua_check"
+      ],
+      "knowledge": [
+        "unreal.ue4ss.lua",
+        "unreal.ue4ss.lua.hooking",
+        "unreal.ue4ss.install"
+      ]
+    }
+  ]
+}

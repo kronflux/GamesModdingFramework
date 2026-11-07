@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "id": "unity-bepinex5",
+      "engine": "unity",
+      "type": "mod",
+      "kind": "scaffold",
+      "path": "templates/unity/bepinex5",
+      "description": "BepInEx 5 Mono plugin with a Harmony-ready Plugin class and an MSBuild project."
+    },
+    {
+      "id": "unity-bepinex6-il2cpp",
+      "engine": "unity",
+      "type": "mod",
+      "kind": "scaffold",
+      "path": "templates/unity/bepinex6-il2cpp",
+      "description": "BepInEx 6 IL2CPP plugin that references the generated interop assemblies."
+    },
+    {
+      "id": "unity-bepinex6-mono",
+      "engine": "unity",
+      "type": "mod",
+      "kind": "scaffold",
+      "path": "templates/unity/bepinex6-mono",
+      "description": "BepInEx 6 Mono plugin with a BaseUnityPlugin entry point and an MSBuild project."
+    },
+    {
+      "id": "unity-melonloader",
+      "engine": "unity",
+      "type": "mod",
+      "kind": "scaffold",
+      "path": "templates/unity/melonloader",
+      "description": "MelonLoader 0.6+ mod with a MelonMod entry point and an MSBuild project; net472 for Mono games, net6.0 with interop references for IL2CPP games."
+    },
+    {
+      "id": "unreal-cpp",
+      "engine": "unreal",
+      "type": "cpp",
+      "kind": "scaffold",
+      "path": "templates/unreal/cpp",
+      "description": "A UE4SS C++ mod with an xmake project and a CppUserModBase class."
+    },
+    {
+      "id": "unreal-dumper",
+      "engine": "unreal",
+      "type": "payload",
+      "kind": "payload",
+      "path": "templates/unreal/dumper",
+      "description": "GmfDumper, a thin UE4SS Lua wrapper over the native dump globals, with the vendored UEHelpers module and a settings fragment."
+    },
+    {
+      "id": "unreal-features",
+      "engine": "unreal",
+      "type": "lua",
+      "kind": "feature",
+      "path": "templates/unreal/features",
+      "description": "Drop-in UE4SS Lua feature modules. Each exposes M.register(ctx) and is copied to Scripts/features/<name>.lua by unreal.scaffold (features input)."
+    },
+    {
+      "id": "unreal-helpers",
+      "engine": "unreal",
+      "type": "lua",
+      "kind": "helper",
+      "path": "templates/unreal/helpers",
+      "description": "Small UE4SS Lua helper modules, copied to Scripts/helpers/<name>.lua by unreal.scaffold (helpers input)."
+    },
+    {
+      "id": "unreal-lua-minimal",
+      "engine": "unreal",
+      "type": "lua",
+      "kind": "scaffold",
+      "path": "templates/unreal/lua-minimal",
+      "description": "A minimal UE4SS Lua mod with one script and an enabled marker."
+    },
+    {
+      "id": "unreal-lua-structured",
+      "engine": "unreal",
+      "type": "lua",
+      "kind": "scaffold",
+      "path": "templates/unreal/lua-structured",
+      "description": "A structured UE4SS Lua mod: a bootstrap main.lua, core modules (config, util, help, selftest), a dev-only systems module, a keybinds example and an in-game verification guide."
+    },
+    {
+      "id": "unreal-pak-blueprint",
+      "engine": "unreal",
+      "type": "pak",
+      "kind": "scaffold",
+      "path": "templates/unreal/pak-blueprint",
+      "description": "A pak/Blueprint mod project with packaging notes and a pack manifest."
+    }
+  ]
+}

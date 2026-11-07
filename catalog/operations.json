@@ -1,0 +1,2809 @@
+{
+  "version": 1,
+  "operations": [
+    {
+      "id": "analyze.assets",
+      "title": "Analyze assets",
+      "summary": "Find assets recorded in engine dump data.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "description": "Profile object, or a path to a gmf.profile.json file; a relative path resolves in the workspace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive substring filter over names, paths, kinds, values, method names and field names. Each result lists its matches, such as name or field:Stamina. Empty or absent returns every entry."
+          }
+        },
+        "required": [
+          "profile"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Dump metadata records, each with a source path and an evidence record.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "description": "Dump files that were not valid JSON and so contributed nothing.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "analyze.classes",
+      "title": "Analyze classes",
+      "summary": "Find classes and their member metadata in engine dump data.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "description": "Profile object, or a path to a gmf.profile.json file; a relative path resolves in the workspace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive substring filter over names, paths, kinds, values, method names and field names. Each result lists its matches, such as name or field:Stamina. Empty or absent returns every entry."
+          }
+        },
+        "required": [
+          "profile"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Dump metadata records, each with a source path and an evidence record.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "description": "Dump files that were not valid JSON and so contributed nothing.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "analyze.entrypoints",
+      "title": "Analyze entrypoints",
+      "summary": "Find entrypoints such as functions, methods and event handlers in engine dump data.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "description": "Profile object, or a path to a gmf.profile.json file; a relative path resolves in the workspace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive substring filter over names, paths, kinds, values, method names and field names. Each result lists its matches, such as name or field:Stamina. Empty or absent returns every entry."
+          }
+        },
+        "required": [
+          "profile"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Dump metadata records, each with a source path and an evidence record.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "description": "Dump files that were not valid JSON and so contributed nothing.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "analyze.objects",
+      "title": "Analyze objects",
+      "summary": "Find object instances and their classes in engine dump data.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "description": "Profile object, or a path to a gmf.profile.json file; a relative path resolves in the workspace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive substring filter over names, paths, kinds, values, method names and field names. Each result lists its matches, such as name or field:Stamina. Empty or absent returns every entry."
+          }
+        },
+        "required": [
+          "profile"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Dump metadata records, each with a source path and an evidence record.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "description": "Dump files that were not valid JSON and so contributed nothing.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "analyze.references",
+      "title": "Analyze references",
+      "summary": "Find references between symbols, classes and objects in engine dump data.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "description": "Profile object, or a path to a gmf.profile.json file; a relative path resolves in the workspace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive substring filter over names, paths, kinds, values, method names and field names. Each result lists its matches, such as name or field:Stamina. Empty or absent returns every entry."
+          }
+        },
+        "required": [
+          "profile"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Dump metadata records, each with a source path and an evidence record.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "description": "Dump files that were not valid JSON and so contributed nothing.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "analyze.strings",
+      "title": "Analyze strings",
+      "summary": "Find strings recorded in engine dump data without returning file contents.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "description": "Profile object, or a path to a gmf.profile.json file; a relative path resolves in the workspace."
+          },
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive substring filter over names, paths, kinds, values, method names and field names. Each result lists its matches, such as name or field:Stamina. Empty or absent returns every entry."
+          }
+        },
+        "required": [
+          "profile"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Dump metadata records, each with a source path and an evidence record.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "description": "Dump files that were not valid JSON and so contributed nothing.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "game.detect",
+      "title": "Detect a game",
+      "summary": "Identify a game's engine, version, runtime, loader and paths without writing into the game folder.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameDir"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "game.games",
+      "title": "List game installs",
+      "summary": "List game folders under GMF_GAME_ROOTS and the workspace game path; Steam libraries are included when no root is configured or includeSteam is true.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "steamRoots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "includeSteam": {
+            "type": "boolean"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "games": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "game.hints",
+      "title": "Engine family hints",
+      "summary": "Report engine family markers (Godot, GameMaker, Source, Ren'Py, RPG Maker, CryEngine, Frostbite, Construct, Unity WebGL) found in a game folder.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameDir"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "hints": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "game.identity",
+      "title": "Identify a game",
+      "summary": "Hash the game executable and read the product, company and store identity hints.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "executable": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameDir"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "sha256": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "store": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "game.inventory",
+      "title": "Inventory a game install",
+      "summary": "List the files and folders of a game install with sizes and counts, without reading file content.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameDir"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array"
+          },
+          "dirs": {
+            "type": "array"
+          },
+          "counts": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "game.profile",
+      "title": "Profile a game",
+      "summary": "Detect the engine, read identity, runtime, loader and paths, assemble a profile with evidence and unknowns, and write it into the workspace.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameDir"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "object"
+          },
+          "evidence": {
+            "type": "array"
+          },
+          "unknowns": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "generic.backup",
+      "title": "Back up a game file",
+      "summary": "Copy a game file into the workspace backups folder and record its SHA-256 before a game write.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gamePath": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gamePath"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "backupPath": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-safety",
+      "docs": [
+        "knowledge/core/safety.md"
+      ]
+    },
+    {
+      "id": "generic.hash",
+      "title": "Hash a file",
+      "summary": "Return the SHA-256 and size of a file so a deployed or packaged artifact can be compared with its build output.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-verify",
+      "docs": [
+        "knowledge/core/evidence.md"
+      ]
+    },
+    {
+      "id": "generic.restore",
+      "title": "Restore a backed-up game file",
+      "summary": "Restore a game file from a recorded backup after verifying the backup hash. Writing into the game folder is a soft-gated gameWrite.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gamePath": {
+            "type": "string"
+          },
+          "backupPath": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gamePath"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "backupPath": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "restored": {
+            "type": "boolean"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "gameWrite",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "gmf-safety",
+      "docs": [
+        "knowledge/core/safety.md"
+      ]
+    },
+    {
+      "id": "generic.run_tool",
+      "title": "Run a registered tool",
+      "summary": "Run a registered tool with explicit arguments under the owned-process layer and return the exit code and the log tail. Use it to reproduce a failing command exactly.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "timeoutMs": {
+            "type": "integer"
+          },
+          "tailLines": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tool"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "exitCode": {
+            "type": "integer"
+          },
+          "stdoutTail": {
+            "type": "string"
+          },
+          "stderrTail": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite",
+        "execute"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "gmf-debug",
+      "docs": [
+        "knowledge/core/toolchain.md"
+      ]
+    },
+    {
+      "id": "knowledge.search",
+      "title": "Search the knowledge base",
+      "summary": "Search knowledge notes by ID, title, tags and body text; returns metadata, confidence and the path, not the body.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "engine": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": [
+        "knowledge/core/catalog.md",
+        "knowledge/core/anti-cheat.md"
+      ]
+    },
+    {
+      "id": "knowledge.show",
+      "title": "Show a knowledge note",
+      "summary": "Return one knowledge note's metadata and full text by id. Find ids with knowledge.search.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A note id such as unity.asset-tools."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": [
+        "knowledge/core/catalog.md"
+      ]
+    },
+    {
+      "id": "plan.apply",
+      "title": "Apply a plan",
+      "summary": "Run the steps in order. Each step's effects are authorized individually; a step without an authorization stops the plan unless it is optional.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "plan": {},
+          "authorizations": {
+            "type": "array"
+          },
+          "authorized": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "results": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-plan",
+      "docs": [
+        "knowledge/core/authorization.md",
+        "knowledge/core/safety.md"
+      ]
+    },
+    {
+      "id": "plan.draft",
+      "title": "Draft a plan",
+      "summary": "Turn a goal and a profile into a draft plan with effects, gates, missing tools and risks. It never executes a step.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string"
+          },
+          "profile": {}
+        },
+        "required": [
+          "goal"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-plan",
+      "docs": [
+        "knowledge/core/catalog.md",
+        "knowledge/core/authorization.md"
+      ]
+    },
+    {
+      "id": "plan.validate",
+      "title": "Validate a plan",
+      "summary": "Check operation IDs, required inputs, tool requirements, effect coverage and gates; report every problem, not only the first.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "plan": {},
+          "requireAuthorizations": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "plan"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-plan",
+      "docs": [
+        "knowledge/core/authorization.md",
+        "knowledge/core/catalog.md"
+      ]
+    },
+    {
+      "id": "skill.list",
+      "title": "List skills",
+      "summary": "List every gmf skill with its summary, the operations it routes to and the knowledge it loads.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": [
+        "knowledge/core/catalog.md"
+      ]
+    },
+    {
+      "id": "skill.show",
+      "title": "Show a skill",
+      "summary": "Return one skill's full text: the steps, evidence and pitfalls for a kind of modding job. Hosts without plugin skills read skills this way.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "A skill name such as unity-assets."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": [
+        "knowledge/core/catalog.md"
+      ]
+    },
+    {
+      "id": "tool.install",
+      "title": "Install a registered tool",
+      "summary": "Download and verify a registered tool into the tool cache. Needs a toolInstall authorization from the plan or the user's instruction.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "gmf-implement",
+      "docs": [
+        "knowledge/core/toolchain.md",
+        "knowledge/core/authorization.md"
+      ]
+    },
+    {
+      "id": "tool.list",
+      "title": "List registered tools",
+      "summary": "List every registered tool with its purpose, license, install state and resolved path.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "engine": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": [
+        "knowledge/core/toolchain.md"
+      ]
+    },
+    {
+      "id": "tool.verify",
+      "title": "Verify an installed tool",
+      "summary": "Check that a registered tool resolves to an existing path and, when the registry publishes one, matches its size or SHA-256.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-verify",
+      "docs": [
+        "knowledge/core/toolchain.md"
+      ]
+    },
+    {
+      "id": "unity.build",
+      "title": "Build a Unity mod",
+      "summary": "Run dotnet build on a scaffolded Unity mod project and return the exact command, exit code and output.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "dotnet"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-testing",
+      "docs": []
+    },
+    {
+      "id": "unity.decompile",
+      "title": "Decompile Unity assemblies",
+      "summary": "Decompile Mono managed assemblies with ilspycmd, or an IL2CPP game with Cpp2IL or Il2CppDumper, into the workspace decompiled folder.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "backend": {
+            "type": "string"
+          },
+          "outputDir": {
+            "type": "string"
+          },
+          "normalize": {
+            "type": "boolean",
+            "description": "Write dumps/unity-<backend>.json for the analyze operations. Default true."
+          },
+          "format": {
+            "type": "string",
+            "description": "IL2CPP only: the Cpp2IL output format, diffable-cs (default, normalizable C#) or dummydll for assemblies."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "outputDir": {
+            "type": "string"
+          },
+          "report": {
+            "type": "string"
+          },
+          "dump": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "ilspycmd",
+        "cpp2il",
+        "il2cppdumper"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-harmony",
+      "docs": []
+    },
+    {
+      "id": "unity.deploy",
+      "title": "Deploy a Unity mod",
+      "summary": "Copy a built mod assembly into the installed loader's plugin folder, backing up every overwritten file first.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "deployed": {
+            "type": "array"
+          },
+          "backup": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unity-bepinex",
+      "docs": []
+    },
+    {
+      "id": "unity.extract_assets",
+      "title": "Extract Unity assets",
+      "summary": "Export Unity assets (textures, sprites, audio, text, MonoBehaviours, meshes, fonts, shaders) with AssetStudioModCLI into the workspace extracted folder. Reads the game only.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "assetPath": {
+            "type": "string",
+            "description": "A .assets or bundle file or a folder, relative to the game folder. Default: the data folder."
+          },
+          "types": {
+            "type": "string",
+            "description": "AssetStudio asset types, comma-separated: tex2d, sprite, textAsset, monoBehaviour, font, shader, audio, video, mesh, or all (default)."
+          },
+          "filter": {
+            "type": "string",
+            "description": "Only assets whose name matches (AssetStudio --filter-by-name; comma-separated)."
+          },
+          "mode": {
+            "type": "string",
+            "description": "export (default), exportRaw, dump, jsonDump or info."
+          },
+          "outputDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array"
+          },
+          "outputDir": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "assetstudio"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-assets",
+      "docs": [
+        "knowledge/unity/asset-tools.md"
+      ]
+    },
+    {
+      "id": "unity.inspect_asset",
+      "title": "Inspect a Unity asset",
+      "summary": "Read object metadata from a Unity asset file with UnityPy and write the metadata into the workspace.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "assetPath": {
+            "type": "string"
+          },
+          "outputDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object"
+          },
+          "metadataPath": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "unitypy"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-assets",
+      "docs": []
+    },
+    {
+      "id": "unity.normalize_dump",
+      "title": "Normalize a Unity decompile or dump",
+      "summary": "Build the normalized dump JSON the analyze operations read from a decompiled C# tree or a Cpp2IL text dump. Keeps names and members only; no method bodies.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "decompiledDir": {
+            "type": "string"
+          },
+          "dumpDir": {
+            "type": "string"
+          },
+          "backend": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "classes": {
+            "type": "integer"
+          },
+          "entrypoints": {
+            "type": "integer"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "unity.package",
+      "title": "Package a Unity mod",
+      "summary": "Build a local Thunderstore-style zip with the mod assembly, manifest and README.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "out": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "zip": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-bepinex",
+      "docs": []
+    },
+    {
+      "id": "unity.remove_mod",
+      "title": "Remove a deployed Unity mod",
+      "summary": "Back up every file of a deployed BepInEx plugin or MelonLoader mod into the workspace, then remove it from the game. Needs a gameWrite authorization.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "The plugin folder under BepInEx/plugins, or the assembly name under Mods, without .dll."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "removed": {
+            "type": "array"
+          },
+          "target": {
+            "type": "string"
+          },
+          "loader": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite",
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unity-bepinex",
+      "docs": [
+        "knowledge/unity/bepinex.md"
+      ]
+    },
+    {
+      "id": "unity.replace_asset",
+      "title": "Replace a Unity asset",
+      "summary": "Replace one object in a Unity asset file: UnityPy writes the changed file into the workspace, then gmf backs up the game file and copies the new one in. Textures take an image, TextAssets any file, other types a JSON object of type-tree fields.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "assetPath": {
+            "type": "string",
+            "description": "The .assets or bundle file, relative to the game folder."
+          },
+          "object": {
+            "type": "string",
+            "description": "The object's path id or name, from unity.inspect_asset."
+          },
+          "replacementPath": {
+            "type": "string",
+            "description": "The new content: an image, a file, or a .json object of type-tree fields."
+          },
+          "outputDir": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "assetPath",
+          "object",
+          "replacementPath"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array"
+          },
+          "backup": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "gameWrite",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "unitypy"
+      ],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unity-assets",
+      "docs": []
+    },
+    {
+      "id": "unity.scaffold",
+      "title": "Scaffold a Unity mod",
+      "summary": "Render a BepInEx 5, BepInEx 6 Mono, BepInEx 6 IL2CPP or MelonLoader mod project into the workspace mods folder.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "loader": {
+            "type": "string"
+          },
+          "backend": {
+            "type": "string"
+          },
+          "outputDir": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array"
+          },
+          "outputDir": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-bepinex",
+      "docs": []
+    },
+    {
+      "id": "unity.setup_loader",
+      "title": "Install a Unity mod loader",
+      "summary": "Download a registered Unity mod loader (BepInEx 6 bleeding edge for IL2CPP) and copy it next to the game executable, backing up every file it overwrites. Needs toolInstall and gameWrite authorizations.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "loader": {
+            "type": "string",
+            "description": "bepinex6-il2cpp. Default: the loader for the detected backend."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "loader": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "files": {
+            "type": "integer"
+          },
+          "backups": {
+            "type": "array"
+          },
+          "verification": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "network",
+        "toolInstall",
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unity-bepinex",
+      "docs": [
+        "knowledge/unity/bepinex.md",
+        "knowledge/unity/il2cpp-interop.md"
+      ]
+    },
+    {
+      "id": "unity.validate",
+      "title": "Validate a Unity mod",
+      "summary": "Check that every Harmony patch in the mod source names a type and method that exists in the game's assemblies.",
+      "engine": "unity",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array"
+          },
+          "warnings": {
+            "type": "array"
+          },
+          "targets": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unity-testing",
+      "docs": []
+    },
+    {
+      "id": "unreal.aob_emit",
+      "title": "Emit a wildcarded signature",
+      "summary": "Build a byte pattern from the instructions at a file offset, wildcard RIP-relative displacements, count its matches in the executable and resolve the first RIP-relative target. A pattern that does not match exactly once is an error with the count.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "exe": {
+            "type": "string",
+            "description": "Path to the executable."
+          },
+          "offset": {
+            "type": "integer",
+            "description": "File offset of the function start."
+          },
+          "maxBytes": {
+            "type": "integer",
+            "description": "Pattern length limit in bytes. Default 32."
+          }
+        },
+        "required": [
+          "exe",
+          "offset"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string"
+          },
+          "mask": {
+            "type": "string"
+          },
+          "matches": {
+            "type": "array"
+          },
+          "target": {
+            "type": "integer"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-aob",
+      "docs": []
+    },
+    {
+      "id": "unreal.aob_verify",
+      "title": "Verify a signature",
+      "summary": "Count the matches of a byte pattern (with ?? and ? wildcards) in the executable and list their file offsets.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "exe": {
+            "type": "string",
+            "description": "Path to the executable."
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Byte pattern, for example '48 8B ?? 05'."
+          }
+        },
+        "required": [
+          "exe",
+          "pattern"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "offsets": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-aob",
+      "docs": []
+    },
+    {
+      "id": "unreal.build",
+      "title": "Build an Unreal mod",
+      "summary": "Build a UE4SS C++ mod with xmake and return the exact command, exit code and log tail. Lua and pak mods return a no-op build result.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "command": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-ue4ss-cpp",
+      "docs": []
+    },
+    {
+      "id": "unreal.crash_stack",
+      "title": "Read a UE4SS crash stack",
+      "summary": "Parse a crash log or cdb stack text into frames, the faulting module and the nearest mod file.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "frames": {
+            "type": "array"
+          },
+          "faultingModule": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nearestMod": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-debugging",
+      "docs": []
+    },
+    {
+      "id": "unreal.deploy",
+      "title": "Deploy an Unreal mod",
+      "summary": "Copy a UE4SS Lua mod to the Mods folder, a C++ mod DLL to Mods/<name>/dlls, or a pak mod to Content/Paks/LogicMods. Every overwritten file is backed up first.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "gameDir": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "deployed": {
+            "type": "array"
+          },
+          "backup": {
+            "type": "array"
+          },
+          "target": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unreal-ue4ss-lua",
+      "docs": []
+    },
+    {
+      "id": "unreal.deploy_dumper",
+      "title": "Deploy the GmfDumper UE4SS helper",
+      "summary": "Copy the GmfDumper mod and the shared UEHelpers module into the UE4SS Mods folder and merge the dumper keys into UE4SS-settings.ini. Every overwritten file is backed up first.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "deployed": {
+            "type": "array"
+          },
+          "backup": {
+            "type": "array"
+          },
+          "mod": {
+            "type": "string"
+          },
+          "settings": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite",
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unreal-dumping",
+      "docs": []
+    },
+    {
+      "id": "unreal.dump",
+      "title": "Dump Unreal objects, usmap and headers",
+      "summary": "Prepare the UE4SS dump layout in the workspace, detect existing object, usmap and header dumps, and return the exact console commands or settings for the missing ones. collect copies the dumps into dumps/ and normalizes the object dump unless normalize is false. With deployHelper set it also writes the GmfDumper mod into the game folder and then needs a gameWrite authorization; that gate is checked in the handler because the effect depends on the input.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "kinds": {
+            "type": "array"
+          },
+          "normalize": {
+            "type": "boolean",
+            "description": "When an object dump is found, write dumps/unreal-objects.json for the analyze operations. Default true."
+          },
+          "deployHelper": {
+            "type": "boolean",
+            "description": "Deploy the GmfDumper UE4SS mod and merge its settings keys. Needs a gameWrite authorization."
+          },
+          "collect": {
+            "type": "boolean",
+            "description": "Copy the object dump, usmap, header dump and GmfDumper report from the UE4SS folder into dumps/ and normalize the object dump."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "artifacts": {
+            "type": "array"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "outputDir": {
+            "type": "string"
+          },
+          "dump": {
+            "type": "string"
+          },
+          "helper": {
+            "type": "object"
+          },
+          "collected": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-dumping",
+      "docs": []
+    },
+    {
+      "id": "unreal.extract_assets",
+      "title": "Extract Unreal assets",
+      "summary": "Copy cooked assets out of the game into the workspace as legacy .uasset/.uexp files: retoc to-legacy on IoStore games, repak unpack on pak games. Pass a filter; a whole game can be gigabytes.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "string",
+            "description": "Asset file name filter, e.g. DT_LoadingScreenTips."
+          },
+          "outputDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "assets": {
+            "type": "array"
+          },
+          "outputDir": {
+            "type": "string"
+          },
+          "container": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "retoc",
+        "repak"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-pak-blueprint",
+      "docs": [
+        "knowledge/unreal/asset-pipeline.md"
+      ]
+    },
+    {
+      "id": "unreal.inspect_asset",
+      "title": "Inspect an Unreal asset",
+      "summary": "Convert an extracted asset to UAssetAPI JSON with UAssetGUI (engine version from the profile, .usmap from dumps/) and list its exports. Edit the JSON, then run unreal.stage_asset.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "assetPath": {
+            "type": "string",
+            "description": "An extracted .uasset/.umap, absolute or relative to extracted/unreal/legacy."
+          },
+          "mountPath": {
+            "type": "string",
+            "description": "The asset path inside the pak; required when the asset is outside extracted/unreal/legacy."
+          },
+          "engineVersion": {
+            "type": "string"
+          },
+          "mappings": {
+            "type": "string",
+            "description": "A .usmap file; default the newest under dumps/."
+          }
+        },
+        "required": [
+          "assetPath"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "jsonPath": {
+            "type": "string"
+          },
+          "mountPath": {
+            "type": "string"
+          },
+          "exports": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "uassetgui"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-pak-blueprint",
+      "docs": [
+        "knowledge/unreal/asset-pipeline.md"
+      ]
+    },
+    {
+      "id": "unreal.lua_check",
+      "title": "Check Lua structure",
+      "summary": "Check block and bracket balance, module field references and, when lua-language-server is on PATH, its warnings. Nothing is installed.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "languageServer": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "issues": {
+            "type": "array"
+          },
+          "languageServer": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-debugging",
+      "docs": []
+    },
+    {
+      "id": "unreal.normalize_dump",
+      "title": "Normalize a UE4SS object dump",
+      "summary": "Build the normalized dump JSON the analyze operations read from UE4SS_ObjectDump.txt. Keeps object names, classes, paths and addresses only.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "dumpsDir": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "objects": {
+            "type": "integer"
+          },
+          "classes": {
+            "type": "integer"
+          },
+          "entrypoints": {
+            "type": "integer"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    },
+    {
+      "id": "unreal.pack_mod",
+      "title": "Pack an Unreal asset mod",
+      "summary": "Pack mods/<mod>/pak/ into mods/<mod>/dist/<mod>_P: .pak, .utoc and .ucas with retoc to-zen on IoStore games, one .pak with repak otherwise. Deploy with unreal.deploy --input type=pak.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "mod": {
+            "type": "string"
+          },
+          "gameDir": {
+            "type": "string"
+          },
+          "engineVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mod"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array"
+          },
+          "container": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "retoc",
+        "repak"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-pak-blueprint",
+      "docs": [
+        "knowledge/unreal/asset-pipeline.md"
+      ]
+    },
+    {
+      "id": "unreal.package",
+      "title": "Package an Unreal mod",
+      "summary": "Build a pak with repak when the project requests one, then package the mod folder into a local zip under dist/.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "out": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "zip": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "integer"
+          },
+          "warnings": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-pak-blueprint",
+      "docs": []
+    },
+    {
+      "id": "unreal.pe_analyze",
+      "title": "Analyze a PE executable",
+      "summary": "Read the sections, imports, exports, timestamp and executable range of a 64-bit PE file without running it.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "exe": {
+            "type": "string",
+            "description": "Path to the executable."
+          }
+        },
+        "required": [
+          "exe"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "sections": {
+            "type": "array"
+          },
+          "imports": {
+            "type": "array"
+          },
+          "exports": {
+            "type": "array"
+          },
+          "timestamp": {
+            "type": "integer"
+          },
+          "textRange": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-aob",
+      "docs": []
+    },
+    {
+      "id": "unreal.remove_mod",
+      "title": "Remove a deployed UE4SS mod",
+      "summary": "Back up and remove a deployed mod: a UE4SS mod folder under ue4ss/Mods, or a pak mod's <name>_P files in Content/Paks/~mods or LogicMods. Needs a gameWrite authorization.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "The UE4SS mod folder name, or the pak mod name (without _P)."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "removed": {
+            "type": "array"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite",
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unreal-ue4ss-lua",
+      "docs": [
+        "knowledge/unreal/ue4ss-install-config.md"
+      ]
+    },
+    {
+      "id": "unreal.scaffold",
+      "title": "Scaffold an Unreal mod",
+      "summary": "Render a UE4SS Lua mod, a UE4SS C++ mod or a pak/Blueprint mod project into the workspace mods folder.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "helpers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array"
+          },
+          "dir": {
+            "type": "string"
+          },
+          "template": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-ue4ss-lua",
+      "docs": []
+    },
+    {
+      "id": "unreal.setup_ue4ss",
+      "title": "Set up UE4SS",
+      "summary": "Install UE4SS from the tool registry into the game folder with a soft gate, record its version and verify the loader layout.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "description": "Only experimental-latest, the release the catalog pins, can be installed. Default experimental-latest."
+          },
+          "development": {
+            "type": "boolean",
+            "description": "Apply the development settings profile (UE4SS debug console and GUI on and visible). Default true."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "network",
+        "toolInstall",
+        "gameWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unreal-ue4ss-lua",
+      "docs": []
+    },
+    {
+      "id": "unreal.stage_asset",
+      "title": "Stage an edited Unreal asset in a mod",
+      "summary": "Convert edited UAssetAPI JSON back to a cooked asset with UAssetGUI, at the same mount path inside mods/<mod>/pak/, ready for unreal.pack_mod.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "mod": {
+            "type": "string",
+            "description": "The mod name; files go to mods/<mod>/pak/."
+          },
+          "jsonPath": {
+            "type": "string",
+            "description": "Edited JSON from unreal.inspect_asset."
+          },
+          "mountPath": {
+            "type": "string",
+            "description": "Override the asset path inside the pak, e.g. Game/Content/Data/DT_X.uasset."
+          },
+          "mappings": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mod",
+          "jsonPath"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "staged": {
+            "type": "array"
+          },
+          "mountPath": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "uassetgui"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-pak-blueprint",
+      "docs": [
+        "knowledge/unreal/asset-pipeline.md"
+      ]
+    },
+    {
+      "id": "unreal.ue4ss_settings",
+      "title": "Apply a UE4SS settings profile",
+      "summary": "Set the UE4SS debug console keys in UE4SS-settings.ini: the development profile turns ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible on, the release profile turns them off. Backs up the ini first.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "string",
+            "description": "development or release. Default: development."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "settings": {
+            "type": "string"
+          },
+          "backup": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "changed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite",
+        "gameWrite"
+      ],
+      "requires": [
+        "ue4ss"
+      ],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unreal-debugging",
+      "docs": [
+        "knowledge/unreal/ue4ss-install-config.md"
+      ]
+    },
+    {
+      "id": "unreal.validate",
+      "title": "Validate an Unreal mod",
+      "summary": "Check the Lua structure and require references, or confirm that a C++ DLL or pak file exists, and return log guidance.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "modDir": {
+            "type": "string"
+          },
+          "gameDir": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array"
+          },
+          "warnings": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-debugging",
+      "docs": []
+    },
+    {
+      "id": "verify.plan",
+      "title": "Run the plan's verification steps",
+      "summary": "Run every step's verify command that starts with gmf, record manual checks as such, and store the results under verification in the plan file.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "description": "A plan object or path. Default: gmf.plan.json in the workspace."
+          },
+          "tailLines": {
+            "type": "integer"
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "verification": {
+            "type": "array"
+          },
+          "planFile": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-verify",
+      "docs": [
+        "knowledge/core/evidence.md"
+      ]
+    },
+    {
+      "id": "workspace.init",
+      "title": "Initialize a workspace",
+      "summary": "Create the committed identity and machine path files for a game, and record the detected engine when one is identified.",
+      "engine": "core",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "workspaceDir": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameDir"
+        ]
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "object"
+          },
+          "written": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skipped": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "gmf-investigate",
+      "docs": []
+    }
+  ]
+}

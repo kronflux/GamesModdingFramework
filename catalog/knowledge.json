@@ -1,0 +1,1041 @@
+{
+  "version": 1,
+  "knowledge": [
+    {
+      "id": "core.anti-cheat",
+      "title": "Anti-cheat mechanisms, mod interactions and ban risk",
+      "engine": "core",
+      "tags": [
+        "anti-cheat",
+        "ban-risk",
+        "safety",
+        "online",
+        "detection"
+      ],
+      "summary": "Understand how anti-cheat observes a modded game, why a marker is risk information and what the ban risk depends on.",
+      "path": "knowledge/core/anti-cheat.md",
+      "confidence": "observed",
+      "sources": [
+        "Public vendor documentation for Easy Anti-Cheat",
+        "BattlEye and Riot Vanguard",
+        "Public community reports of mod-related bans"
+      ]
+    },
+    {
+      "id": "core.authorization",
+      "title": "Effects, gates and authorization records",
+      "engine": "core",
+      "tags": [
+        "authorization",
+        "gates",
+        "effects",
+        "safety",
+        "plan"
+      ],
+      "summary": "Map operation effects to auto, soft and hard gates and record the source that authorized each risky step.",
+      "path": "knowledge/core/authorization.md",
+      "confidence": "verified",
+      "sources": [
+        "GMF design documentation (docs/architecture.md",
+        "docs/catalog.md",
+        "docs/authorization.md)",
+        "GMF authorization documentation"
+      ]
+    },
+    {
+      "id": "core.catalog",
+      "title": "Catalog-first operation selection",
+      "engine": "core",
+      "tags": [
+        "catalog",
+        "operations",
+        "effects",
+        "gates",
+        "discovery"
+      ],
+      "summary": "Choose capabilities from the catalog by ID, effects and gates instead of guessing a fixed workflow.",
+      "path": "knowledge/core/catalog.md",
+      "confidence": "verified",
+      "sources": [
+        "GMF design documentation (docs/architecture.md",
+        "docs/catalog.md",
+        "docs/authorization.md)"
+      ]
+    },
+    {
+      "id": "core.evidence",
+      "title": "Evidence and confidence labels",
+      "engine": "core",
+      "tags": [
+        "evidence",
+        "confidence",
+        "unknowns",
+        "provenance"
+      ],
+      "summary": "Record every finding with a claim, a confidence label, an authority and a source so a later agent can recheck it.",
+      "path": "knowledge/core/evidence.md",
+      "confidence": "verified",
+      "sources": [
+        "GMF design documentation (docs/architecture.md",
+        "docs/catalog.md",
+        "docs/authorization.md)"
+      ]
+    },
+    {
+      "id": "core.safety",
+      "title": "Backups and hard gates before game writes",
+      "engine": "core",
+      "tags": [
+        "safety",
+        "backups",
+        "destructive",
+        "gameWrite",
+        "restore"
+      ],
+      "summary": "Copy an existing game file into the workspace before overwriting it and refuse writes that cannot be backed up.",
+      "path": "knowledge/core/safety.md",
+      "confidence": "verified",
+      "sources": [
+        "GMF design documentation (docs/architecture.md",
+        "docs/catalog.md",
+        "docs/authorization.md)",
+        "GMF authorization documentation"
+      ]
+    },
+    {
+      "id": "core.toolchain",
+      "title": "Tool registry, cache and runtime downloads",
+      "engine": "core",
+      "tags": [
+        "tools",
+        "toolchain",
+        "licenses",
+        "downloads",
+        "verification"
+      ],
+      "summary": "Resolve tools from the registry cache and install only with authorization and a recorded verification outcome.",
+      "path": "knowledge/core/toolchain.md",
+      "confidence": "verified",
+      "sources": [
+        "GMF design documentation (docs/architecture.md",
+        "docs/catalog.md",
+        "docs/authorization.md)",
+        "BepInEx LGPL-2.1 license",
+        "Cpp2IL MIT license"
+      ]
+    },
+    {
+      "id": "core.workspace",
+      "title": "Workspace files and path containment",
+      "engine": "core",
+      "tags": [
+        "workspace",
+        "paths",
+        "git",
+        "profile"
+      ],
+      "summary": "Keep committed identity, machine paths and generated evidence separate and never write outside the workspace by accident.",
+      "path": "knowledge/core/workspace.md",
+      "confidence": "verified",
+      "sources": [
+        "GMF design documentation (docs/architecture.md",
+        "docs/catalog.md",
+        "docs/authorization.md)"
+      ]
+    },
+    {
+      "id": "games.example",
+      "title": "Example Game",
+      "engine": "core",
+      "tags": [
+        "game",
+        "example"
+      ],
+      "summary": "A synthetic example of a per-game note; not a real game.",
+      "path": "knowledge/games/_example.md",
+      "confidence": "inferred",
+      "sources": [
+        "https://example.invalid/synthetic-example"
+      ]
+    },
+    {
+      "id": "core.games",
+      "title": "Per-game notes",
+      "engine": "core",
+      "tags": [
+        "games",
+        "format",
+        "profile",
+        "knowledge"
+      ],
+      "summary": "Format for a per-game knowledge note under knowledge/games, with the game, engine, store, appId, loader, antiCheat, verified and sources frontmatter fields.",
+      "path": "knowledge/games/README.md",
+      "confidence": "observed",
+      "sources": [
+        "docs/knowledge.md"
+      ]
+    },
+    {
+      "id": "unity.assets.bundles",
+      "title": "AssetBundle workflows for mods",
+      "engine": "unity",
+      "tags": [
+        "assetbundle",
+        "assets",
+        "shaders",
+        "unity-version",
+        "loading",
+        "distribution"
+      ],
+      "summary": "When a mod needs an AssetBundle, matching the game's Unity version and build target, building with BuildPipeline, loading sync, async and embedded, magenta shader fixes, unloading and distribution.",
+      "path": "knowledge/unity/asset-bundles.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.asset-tools",
+      "title": "Unity asset tools, the default and the fallbacks",
+      "engine": "unity",
+      "tags": [
+        "assets",
+        "assetstudio",
+        "assetripper",
+        "unitypy",
+        "uabea",
+        "assetstools",
+        "il2cpp",
+        "extraction",
+        "tools"
+      ],
+      "summary": "Which tool gmf uses to export, inspect and replace Unity assets, what each fallback does better, and the exact commands to run one when the default fails.",
+      "path": "knowledge/unity/asset-tools.md",
+      "confidence": "observed",
+      "sources": [
+        "aelurum/AssetStudio v0.20.0 release and AssetStudioCLI/ReadMe.md (2026-11-07)",
+        "AssetRipper 2.0.0 source Arguments.cs",
+        "WebApplicationLauncher.cs and Pages/Commands.cs (2026-11-07)",
+        "UnityPy 1.25.4 README and PyPI (2026-11-07)",
+        "nesrak1/UABEA and AssetsTools.NET releases (2026-11-07)",
+        "gmf runs on a Unity 6000.3 IL2CPP title 2026-11-07"
+      ]
+    },
+    {
+      "id": "unity.assets",
+      "title": "Unity asset extraction and replacement",
+      "engine": "unity",
+      "tags": [
+        "assets",
+        "assetstudio",
+        "assetripper",
+        "unitypy",
+        "bundles",
+        "replacement"
+      ],
+      "summary": "Extract bundles and assets into the workspace with AssetStudioModCLI (fallbacks in unity.asset-tools) and replace an asset with UnityPy only after a backup.",
+      "path": "knowledge/unity/assets.md",
+      "confidence": "observed",
+      "sources": [
+        "AssetRipper documentation",
+        "UnityPy documentation",
+        "Unity asset bundle format notes",
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.bepinex.lifecycle",
+      "title": "BepInEx 5 plugin lifecycle and configuration",
+      "engine": "unity",
+      "tags": [
+        "bepinex",
+        "plugin",
+        "lifecycle",
+        "config",
+        "configentry",
+        "logging",
+        "awake",
+        "dependencies"
+      ],
+      "summary": "BepInEx 5 plugin attributes, initialization order, dependencies, ConfigEntry configuration and events, logging, inter-plugin communication, safe initialization, debug commands and common patterns.",
+      "path": "knowledge/unity/bepinex-plugin-lifecycle.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.bepinex",
+      "title": "BepInEx loader and plugin layout",
+      "engine": "unity",
+      "tags": [
+        "bepinex",
+        "loader",
+        "mono",
+        "il2cpp",
+        "plugins"
+      ],
+      "summary": "Recognize a BepInEx 5 or BepInEx 6 install from its files and place a plugin under the right plugins folder.",
+      "path": "knowledge/unity/bepinex.md",
+      "confidence": "verified",
+      "sources": [
+        "BepInEx documentation",
+        "BepInEx GitHub repository",
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.csharp.patterns",
+      "title": "C# modding patterns and IL2CPP compatibility",
+      "engine": "unity",
+      "tags": [
+        "csharp",
+        "il2cpp",
+        "reflection",
+        "memory",
+        "threads",
+        "monomod",
+        "interop",
+        "performance"
+      ],
+      "summary": "C# patterns for Unity mods on .NET Framework 4.7.2 (safe reflection, caching, pooling, thread safety, errors, Unity null checks), writing code that works on IL2CPP, and MonoMod RuntimeDetour essentials.",
+      "path": "knowledge/unity/csharp-patterns.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.debugging",
+      "title": "Debugging and triage for Unity mods",
+      "engine": "unity",
+      "tags": [
+        "debugging",
+        "triage",
+        "harmony",
+        "bepinex",
+        "nullreference",
+        "il2cpp",
+        "wascollected",
+        "__instance",
+        "logging"
+      ],
+      "summary": "First checks by symptom, common error patterns (NullReferenceException, patch not applying, conflicts, leaks), diagnostic logging, a Harmony binding and transpiler debugging guide, defensive coding, and IL2CPP-specific failure modes.",
+      "path": "knowledge/unity/debugging.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.harmony.advanced",
+      "title": "Harmony patching in depth",
+      "engine": "unity",
+      "tags": [
+        "harmony",
+        "harmonyx",
+        "patching",
+        "prefix",
+        "postfix",
+        "transpiler",
+        "__instance",
+        "il2cpp",
+        "bepinex"
+      ],
+      "summary": "Harmony 2.x and HarmonyX patch types, special arguments such as __instance and __result, reverse patches, constructors, iterators, transpilers, priorities, conflicts, pitfalls and the IL2CPP limits.",
+      "path": "knowledge/unity/harmony-advanced.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.harmony",
+      "title": "Harmony patching and target resolution",
+      "engine": "unity",
+      "tags": [
+        "harmony",
+        "patching",
+        "csharp",
+        "entrypoints",
+        "verification"
+      ],
+      "summary": "Patch Unity methods at runtime with Harmony prefixes, postfixes and transpilers and verify that every target resolves.",
+      "path": "knowledge/unity/harmony.md",
+      "confidence": "verified",
+      "sources": [
+        "Harmony documentation",
+        "Harmony GitHub repository",
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.il2cpp.interop",
+      "title": "IL2CPP interop assemblies",
+      "engine": "unity",
+      "tags": [
+        "il2cpp",
+        "interop",
+        "bepinex6",
+        "melonloader",
+        "cpp2il"
+      ],
+      "summary": "Generate and use interop assemblies so a C# mod can reference IL2CPP classes without touching the shipped binary.",
+      "path": "knowledge/unity/il2cpp-interop.md",
+      "confidence": "verified",
+      "sources": [
+        "BepInEx 6 Il2CppInterop documentation",
+        "Cpp2IL GitHub repository",
+        "MelonLoader documentation",
+        "earlier Unity modding framework notes",
+        "Cpp2IL 2022.1.0-pre-release.21 release notes",
+        "BepInEx issue 1342",
+        "Il2CppInterop issue 283",
+        "Il2CppDumper README",
+        "a Unity 6000.3.14 IL2CPP title verified 2026-11-07"
+      ]
+    },
+    {
+      "id": "unity.il2cpp.patching",
+      "title": "IL2CPP patching with Il2CppInterop",
+      "engine": "unity",
+      "tags": [
+        "il2cpp",
+        "il2cppinterop",
+        "harmony",
+        "bepinex6",
+        "melonloader",
+        "interop",
+        "patching",
+        "wascollected"
+      ],
+      "summary": "Patch and extend an IL2CPP game with BepInEx 6 or MelonLoader through Il2CppInterop, Prefix and Postfix only, interop types and collections, injected MonoBehaviours, coroutines, delegates, WasCollected, inlined or folded methods and triage order.",
+      "path": "knowledge/unity/il2cpp-patching.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.debugging.logs",
+      "title": "Loader log analysis for Unity mods",
+      "engine": "unity",
+      "tags": [
+        "logs",
+        "bepinex",
+        "melonloader",
+        "debugging",
+        "exceptions",
+        "player-log"
+      ],
+      "summary": "Where BepInEx, MelonLoader and Unity write logs, how to turn logging up, how to read a BepInEx startup, a table of exception signatures and how to log from your own mod.",
+      "path": "knowledge/unity/log-analysis.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.melonloader",
+      "title": "MelonLoader mod loader layout",
+      "engine": "unity",
+      "tags": [
+        "melonloader",
+        "loader",
+        "mono",
+        "il2cpp",
+        "mods"
+      ],
+      "summary": "Recognize a MelonLoader install and place a Melon mod or an IL2CPP assembly where the loader expects it.",
+      "path": "knowledge/unity/melonloader.md",
+      "confidence": "verified",
+      "sources": [
+        "MelonLoader documentation",
+        "MelonLoader GitHub repository",
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.assets.models-audio",
+      "title": "Model and audio replacement",
+      "engine": "unity",
+      "tags": [
+        "models",
+        "audio",
+        "mesh",
+        "audioclip",
+        "assets",
+        "skinnedmesh",
+        "assetbundle"
+      ],
+      "summary": "Why models need an AssetBundle or a mesh built in code, swapping meshes and skinned meshes in place, building a Mesh, which audio formats load at runtime, loading clips with UnityWebRequest, and finding the right AudioSource.",
+      "path": "knowledge/unity/models-audio.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.debugging.performance",
+      "title": "Performance profiling for Unity mods",
+      "engine": "unity",
+      "tags": [
+        "performance",
+        "profiling",
+        "gc",
+        "allocation",
+        "harmony",
+        "startup",
+        "frame-time"
+      ],
+      "summary": "What a mod can actually measure (startup, per-frame cost, Harmony patch overhead, allocations and GC), with Stopwatch snippets and the ranked list of common mod performance mistakes.",
+      "path": "knowledge/unity/performance.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.reflection",
+      "title": "Reflection patterns for Unity mods",
+      "engine": "unity",
+      "tags": [
+        "reflection",
+        "accesstools",
+        "harmony",
+        "fieldrefaccess",
+        "private-members",
+        "caching",
+        "il2cpp"
+      ],
+      "summary": "Reach private game internals with Harmony AccessTools, FieldRefAccess and MethodDelegate, __field injection, generics and nested types, runtime type lookup and caching.",
+      "path": "knowledge/unity/reflection.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.testing.ci",
+      "title": "CI for Unity mods without game assemblies",
+      "engine": "unity",
+      "tags": [
+        "ci",
+        "github-actions",
+        "nuget",
+        "bepinex",
+        "thunderstore",
+        "testing",
+        "release",
+        "melonloader"
+      ],
+      "summary": "Why a mod build fails on a CI runner, why game DLLs must never be committed, and the three workable options (BepInEx NuGet feed, split logic project, self-hosted runner) with GitHub Actions workflows and Thunderstore release packaging.",
+      "path": "knowledge/unity/testing-ci.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes",
+        "nuget.org/packages/LavaGang.MelonLoader (2026-11-07)"
+      ]
+    },
+    {
+      "id": "unity.testing",
+      "title": "Testing Unity and BepInEx mods",
+      "engine": "unity",
+      "tags": [
+        "testing",
+        "nunit",
+        "xunit",
+        "moq",
+        "harmony",
+        "unit-tests",
+        "integration",
+        "mocking",
+        "coverage"
+      ],
+      "summary": "Why Unity and BepInEx types cannot be unit-tested, extracting patch logic into pure testable methods, mocking limits, unit and integration test shapes, best practices, coverage goals and what to verify in game.",
+      "path": "knowledge/unity/testing.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.assets.textures",
+      "title": "Texture replacement at runtime",
+      "engine": "unity",
+      "tags": [
+        "textures",
+        "assets",
+        "materials",
+        "memory",
+        "loadimage",
+        "il2cpp"
+      ],
+      "summary": "What Texture2D.LoadImage can load, applying a replacement with material versus sharedMaterial, finding the right material, preserving import settings, the RGBA32 memory cost, compressed formats and IL2CPP notes.",
+      "path": "knowledge/unity/textures.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unity.translation",
+      "title": "Unity translation workflow",
+      "engine": "unity",
+      "tags": [
+        "translation",
+        "assets",
+        "fonts",
+        "text",
+        "localization"
+      ],
+      "summary": "Extract localizable strings and fonts, translate them outside the game and deploy the result as a mod rather than an asset overwrite.",
+      "path": "knowledge/unity/translation.md",
+      "confidence": "inferred",
+      "sources": [
+        "Unity localisation package documentation",
+        "Community Unity translation workflows",
+        "earlier Unity modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.aob.degradation",
+      "title": "AOB degradation chain",
+      "engine": "unreal",
+      "tags": [
+        "aob",
+        "signatures",
+        "ue4ss",
+        "reverse-engineering",
+        "ghidra",
+        "x64dbg"
+      ],
+      "summary": "The ordered fallback for a UE4SS signature target that will not anchor cleanly, from exports-first through anchored disassembly, Ghidra, pasted debugger output and fully manual work, with the trigger for each escalation.",
+      "path": "knowledge/unreal/aob-degradation.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.aob.targets",
+      "title": "AOB signature targets and authoring workflow",
+      "engine": "unreal",
+      "tags": [
+        "aob",
+        "signatures",
+        "ue4ss",
+        "patternsleuth",
+        "reverse-engineering",
+        "guobjectarray",
+        "fname"
+      ],
+      "summary": "The eleven UE4SS_Signatures targets (GUObjectArray, FName_ToString, FName_Constructor, StaticConstructObject, GMalloc, GNatives and more), the OnMatchFound contract for each, the two Lua signature forms, wildcarding rules and the three-part verification gate.",
+      "path": "knowledge/unreal/aob-signature-targets.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.aob",
+      "title": "Array-of-bytes signature scanning",
+      "engine": "unreal",
+      "tags": [
+        "aob",
+        "signatures",
+        "pattern",
+        "scanning",
+        "updates"
+      ],
+      "summary": "Find a function or global by a byte pattern, resolve the reference and expect the signature to break on a game update.",
+      "path": "knowledge/unreal/aob.md",
+      "confidence": "observed",
+      "sources": [
+        "UE4SS documentation",
+        "Community Unreal signature scanning notes",
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.asset-pipeline",
+      "title": "Unreal asset mods with retoc, repak and UAssetGUI",
+      "engine": "unreal",
+      "tags": [
+        "assets",
+        "iostore",
+        "pak",
+        "retoc",
+        "repak",
+        "uassetgui",
+        "usmap",
+        "mods",
+        "datatable"
+      ],
+      "summary": "Extract a cooked asset, edit it as JSON and ship it as a <Name>_P pak or IoStore set in Content/Paks/~mods, with the exact commands gmf runs and what was verified on a UE 5.6 IoStore game.",
+      "path": "knowledge/unreal/asset-pipeline.md",
+      "confidence": "verified",
+      "sources": [
+        "trumank/repak v0.2.3 README and --help",
+        "trumank/retoc v0.1.5 README and --help",
+        "atenfyr/UAssetGUI README (v1.1.1 experimental)",
+        "Dmgvol UE_Modding ExtractingIoStore guide",
+        "gmf run on a UE 5.6 IoStore title 2026-11-07"
+      ]
+    },
+    {
+      "id": "unreal.cookbook.advanced",
+      "title": "Cookbook, advanced UE4SS Lua patterns",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "cookbook",
+        "hooks",
+        "unregister",
+        "findallof",
+        "struct",
+        "array",
+        "reflection"
+      ],
+      "summary": "Safe hooking with clean unregister, cancellable loops, actor iteration and filtering, cached context with checkpoint saves, and struct and array property access in UE4SS Lua.",
+      "path": "knowledge/unreal/cookbook-advanced.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.cookbook.basic",
+      "title": "Cookbook, basic UE4SS Lua cheats",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "cookbook",
+        "noclip",
+        "godmode",
+        "health",
+        "stamina",
+        "economy",
+        "spawn",
+        "teleport"
+      ],
+      "summary": "Working UE4SS Lua recipes for noclip and fly, god mode, infinite health and stamina, economy, item spawn and give, and teleport, built on reflection and hooks rather than stock cheat commands.",
+      "path": "knowledge/unreal/cookbook-basic.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.debugging",
+      "title": "Debugging UE4SS mods, triage",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "debugging",
+        "triage",
+        "log",
+        "crash",
+        "hooks",
+        "patternsleuth"
+      ],
+      "summary": "Read the UE4SS log and crash dumps first, then classify a failing mod as not loading, bad require path, hook not firing, wrong thread, stale object or a PatternSleuth scan failure, and find the owning fix.",
+      "path": "knowledge/unreal/debugging.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.dumps.artifacts",
+      "title": "Dump artifact catalog and targeted dumping",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "dumps",
+        "objectdump",
+        "usmap",
+        "jmap",
+        "headers",
+        "uht",
+        "uvtd",
+        "artifacts"
+      ],
+      "summary": "Every UE4SS game-derived artifact (object dump, CXX and UHT headers, usmap, jmap, static actors and meshes, UVTD, zMapGenBP) with its producer, purpose, config and the mod type that needs it, plus the dumping workflow and which dumps a mod goal requires.",
+      "path": "knowledge/unreal/dump-artifact-catalog.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.dumps",
+      "title": "Unreal dump artifacts",
+      "engine": "unreal",
+      "tags": [
+        "dumps",
+        "usmap",
+        "headers",
+        "objects",
+        "evidence"
+      ],
+      "summary": "Produce object, usmap and header dumps and treat each as evidence with a game build attached.",
+      "path": "knowledge/unreal/dumps.md",
+      "confidence": "verified",
+      "sources": [
+        "UE4SS documentation",
+        "UAssetAPI mappings documentation",
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.field-notes",
+      "title": "Field notes, UE4SS in practice",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "field-notes",
+        "hooks",
+        "gotchas",
+        "crash",
+        "settings"
+      ],
+      "summary": "26 numbered findings from shipped UE4SS mods, each a documentation error, a crash and its real cause, or an approach that looked right and was not. Includes DefaultExecuteInGameThreadMethod, HookProcessConsoleExec, RegisterHook and FindAllOf traps.",
+      "path": "knowledge/unreal/field-notes.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.mined-gotchas",
+      "title": "Mined gotchas, what shipped UE4SS mods learned",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "gotchas",
+        "hooks",
+        "threads",
+        "paths",
+        "structs",
+        "spawning"
+      ],
+      "summary": "Forty numbered gotchas (G1 to G40) recorded by authors of shipped UE4SS mods on paths, threads, hooks, objects, spawning and UI, each labelled observed or inferred.",
+      "path": "knowledge/unreal/mined-gotchas.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.modmenu",
+      "title": "Building an in-game mod menu on ue4ss-ModMenu",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "modmenu",
+        "ui",
+        "umg",
+        "config",
+        "keybinds"
+      ],
+      "summary": "How to build a mouse-driven in-game menu on UE4SS 3.0.1 with the third-party ue4ss-ModMenu framework, its API, undocumented rules and working patterns.",
+      "path": "knowledge/unreal/modmenu.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.object-model",
+      "title": "Unreal object model and reflection",
+      "engine": "unreal",
+      "tags": [
+        "object-model",
+        "uobject",
+        "reflection",
+        "uclass",
+        "fname"
+      ],
+      "summary": "Navigate UObject, UClass, UFunction and FName through the reflection system instead of guessing memory layout.",
+      "path": "knowledge/unreal/object-model.md",
+      "confidence": "verified",
+      "sources": [
+        "Unreal Engine reflection documentation",
+        "UE4SS object dump format notes",
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.pak.blueprint",
+      "title": "Blueprint and pak mods through BPModLoaderMod",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "pak",
+        "blueprint",
+        "bpmodloader",
+        "logicmods",
+        "repak",
+        "unrealpak",
+        "cook"
+      ],
+      "summary": "When a task really needs the Blueprint and pak track, how BPModLoaderMod discovers, orders and mounts LogicMods paks, the ModActor convention, the BPML_GenericFunctions custom events, and how to cook, pack and deploy.",
+      "path": "knowledge/unreal/pak-blueprint.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.pak",
+      "title": "Unreal pak and IoStore packaging",
+      "engine": "unreal",
+      "tags": [
+        "pak",
+        "repak",
+        "retoc",
+        "iostore",
+        "packaging"
+      ],
+      "summary": "Read and write pak and IoStore containers with repak and retoc, and know which one a game uses.",
+      "path": "knowledge/unreal/pak.md",
+      "confidence": "observed",
+      "sources": [
+        "repak README (v0.2.3)",
+        "retoc README (v0.1.5)",
+        "gmf run on a UE 5.6 IoStore title 2026-11-07",
+        "Unreal Engine pak format notes",
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.pattern-index",
+      "title": "Pattern index, task to known UE4SS Lua pattern",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "patterns",
+        "index",
+        "cookbook"
+      ],
+      "summary": "A task-to-pattern lookup for UE4SS Lua mods (console commands, menus, HUD, ESP, keybinds, spawning, weather, actor iteration, config, safe hooking) naming the API calls to search for.",
+      "path": "knowledge/unreal/pattern-index.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.reflection",
+      "title": "UE object model and runtime reflection through UE4SS Lua",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "reflection",
+        "uobject",
+        "uclass",
+        "ustruct",
+        "ufunction",
+        "property",
+        "fname",
+        "enum"
+      ],
+      "summary": "What a UObject is in memory, the UClass, UStruct, UScriptStruct and UFunction hierarchy, FName, the property system and enums, and how to walk classes and read and write properties from UE4SS Lua.",
+      "path": "knowledge/unreal/reflection.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.ue4ss.cpp",
+      "title": "UE4SS C++ mod layout",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "cpp",
+        "sdk",
+        "hooks",
+        "build"
+      ],
+      "summary": "Build a UE4SS C++ mod against the UE4SS SDK and deploy its DLL to the Mods folder with the companion metadata.",
+      "path": "knowledge/unreal/ue4ss-cpp.md",
+      "confidence": "verified",
+      "sources": [
+        "UE4SS documentation",
+        "RE-UE4SS GitHub repository",
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.ue4ss.install",
+      "title": "UE4SS install, settings and enabling mods",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "install",
+        "settings",
+        "mods-txt",
+        "enabled-txt",
+        "dev-build",
+        "ini"
+      ],
+      "summary": "Where UE4SS goes beside the shipping binary, dev versus release builds, the UE4SS-settings.ini sections that matter, merging the dumper settings, mods.txt versus enabled.txt, and how to verify it is running.",
+      "path": "knowledge/unreal/ue4ss-install-config.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.ue4ss.lua.hooking",
+      "title": "UE4SS Lua API map and safe hooking",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "api",
+        "hooks",
+        "registerhook",
+        "findfirstof",
+        "executeingamethread",
+        "delayed-actions",
+        "keybinds"
+      ],
+      "summary": "Task-oriented map of the UE4SS Lua API (lifecycle, finders, calling UFunctions, RegisterHook, keybinds, console commands, game-thread and delayed execution, UEHelpers) and a five-point safe-hooking checklist.",
+      "path": "knowledge/unreal/ue4ss-lua-hooking.md",
+      "confidence": "observed",
+      "sources": [
+        "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.ue4ss.lua",
+      "title": "UE4SS Lua mod layout",
+      "engine": "unreal",
+      "tags": [
+        "ue4ss",
+        "lua",
+        "events",
+        "hooks",
+        "mods"
+      ],
+      "summary": "Write a UE4SS Lua mod with a load entry, hooks and console commands in the folder layout UE4SS discovers.",
+      "path": "knowledge/unreal/ue4ss-lua.md",
+      "confidence": "verified",
+      "sources": [
+        "UE4SS documentation",
+        "RE-UE4SS GitHub repository",
+        "earlier Unreal modding framework notes"
+      ]
+    }
+  ]
+}
