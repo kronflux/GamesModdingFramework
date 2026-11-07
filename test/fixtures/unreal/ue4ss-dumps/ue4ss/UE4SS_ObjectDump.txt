@@ -1,0 +1,8 @@
+[0x0000000000000001] Package /Script/Engine
+[0x0000000000000010] Class /Script/Engine.GameModeBase
+[0x0000000000000011] Function /Script/Engine.GameModeBase:BeginPlay
+[0x0000000000000020] BlueprintGeneratedClass /Game/Fixture/BP_FixtureGameMode.BP_FixtureGameMode_C
+[0x0000000000000021] Function /Game/Fixture/BP_FixtureGameMode.BP_FixtureGameMode_C:ReceiveBeginPlay
+[0x0000000000000030] BP_FixtureGameMode_C /Game/Fixture/Maps/FixtureMap.FixtureMap:PersistentLevel.BP_FixtureGameMode_C_0
+[0x0000000000000040] PlayerController /Game/Fixture/Maps/FixtureMap.FixtureMap:PersistentLevel.PlayerController_0
+[0x0000000000000041] Function /Script/Engine.PlayerController:ClientRestart

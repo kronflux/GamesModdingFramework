@@ -1,0 +1,10 @@
+UE4SS crash report (synthetic fixture, not from a real game)
+Unhandled exception 0xC0000005 (access violation) in module Game-Win64-Shipping.exe
+Lua traceback:
+  [C]: in function 'FindFirstOf'
+  Mods/GmfSample/Scripts/main.lua:12: in function 'OnTick'
+Stack:
+00 000000a1`2b3cf0a0 00007ff6`1a2b3c4d Game-Win64-Shipping.exe+0x1a3c4d
+01 000000a1`2b3cf0b0 00007ff8`11110124 UE4SS!RC::LuaType::push_softobjectproperty+0x124
+02 000000a1`2b3cf0c0 00007ff8`111105e1 UE4SS!RC::LuaMadeSimple::Lua::call_function+0x5e1
+03 000000a1`2b3cf0d0 00007ff8`22220017 KERNEL32!BaseThreadInitThunk+0x17

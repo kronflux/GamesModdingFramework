@@ -1,0 +1,18 @@
+PS Scan attempt 94 (Phase 2)
+[PS] Reading image
+[PS] Starting scan
+[PS] Scan finished in 327.8625ms
+[PS] Found EngineVersion: 5.7
+[PS] Found GUObjectArray: 0x7ff6a3f3b850
+[PS] Found GMalloc: 0x7ff6a3e62b70
+[PS] Found FName::ToString: 0x7ff69cb38c60
+[PS] Failed to find FName::FName(wchar_t*): FNameCtorWchar: expected at least one value
+[PS] You can supply your own AOB in 'UE4SS_Signatures/FName_Constructor.lua'
+[PS] Found StaticConstructObject_Internal: 0x7ff69cd2fe10
+[PS] Failed to find FUObjectHashTables::Get(): FUObjectHashTablesGet: expected at least one value
+[PS] You can supply your own AOB in 'UE4SS_Signatures/GUObjectHashTables.lua'
+[PS] Failed to find GNatives: GNatives: expected at least one value
+[PS] You can supply your own AOB in 'UE4SS_Signatures/GNatives.lua'
+[PS] Found ConsoleManagerSingleton: 0x7ff69c9be500
+[PS] Found GameEngineTick: 0x7ff69f217a00
+[PS] Scan failed
