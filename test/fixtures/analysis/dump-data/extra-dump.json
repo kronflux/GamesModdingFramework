@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "engine": "unreal",
+  "classes": [
+    { "name": "UAnotherFixture", "namespace": "Gmf.Fixture", "methods": [], "fields": [] }
+  ]
+}

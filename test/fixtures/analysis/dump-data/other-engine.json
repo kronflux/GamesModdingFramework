@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "engine": "unity",
+  "classes": [
+    { "name": "WrongEngineFixtureClass", "namespace": "Gmf.Fixture" }
+  ]
+}

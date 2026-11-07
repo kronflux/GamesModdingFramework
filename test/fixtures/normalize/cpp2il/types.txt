@@ -1,0 +1,6 @@
+Type: Fixture.Game.Enemy : UnityEngine.MonoBehaviour
+  Field: Speed (float)
+  Method: Attack(int) : void
+  Method: Update() : void
+Type: Fixture.Game.Spawner
+  Method: Spawn() : Fixture.Game.Enemy

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-06T00:00:00Z",
+  "game": {
+    "name": "Synthetic Analysis Fixture",
+    "installDir": "test/fixtures/analysis/game",
+    "executable": "Game.exe",
+    "sha256": null,
+    "product": null,
+    "company": null,
+    "store": { "id": "manual", "appId": null }
+  },
+  "engine": {
+    "id": "unreal",
+    "version": null,
+    "confidence": "observed",
+    "selected": true,
+    "alternatives": []
+  },
+  "runtime": { "backend": "native", "architecture": "x86_64" },
+  "loader": { "id": "ue4ss", "installed": true, "version": null, "path": null, "notes": [] },
+  "tools": [],
+  "capabilities": [],
+  "markers": { "antiCheat": [], "online": false, "launcher": null },
+  "paths": {
+    "dumps": "dump-data",
+    "data": null,
+    "managed": null,
+    "interop": null,
+    "deploy": null,
+    "content": null,
+    "binaries": null
+  },
+  "unknowns": [],
+  "evidence": []
+}

@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "engine": "unreal",
+  "entrypoints": [
+    { "name": "UGameEngine::Init", "kind": "function", "module": "Engine", "address": "0x140001000" },
+    { "name": "AFixtureGameMode::BeginPlay", "kind": "method", "class": "AFixtureGameMode", "address": "0x140002000" }
+  ],
+  "classes": [
+    {
+      "name": "AFixtureGameMode",
+      "namespace": "Gmf.Fixture",
+      "methods": ["BeginPlay", "Tick"],
+      "fields": ["Health"],
+      "body": "SYNTHETIC_DECOMPILED_BODY_MUST_NOT_LEAK"
+    },
+    {
+      "name": "UFictionSubsystem",
+      "namespace": "Gmf.Fixture",
+      "methods": ["Initialize"],
+      "fields": []
+    }
+  ],
+  "objects": [
+    {
+      "name": "AFixtureGameMode_C_0",
+      "class": "AFixtureGameMode",
+      "path": "/Game/Fixture/Maps/FixtureMap.FixtureMap:PersistentLevel.AFixtureGameMode_C_0"
+    },
+    {
+      "name": "UFictionSubsystem_0",
+      "class": "UFictionSubsystem",
+      "path": "/Game/Fixture/Subsystems.UFictionSubsystem_0"
+    }
+  ],
+  "references": [
+    { "from": "AFixtureGameMode::BeginPlay", "to": "UFictionSubsystem::Initialize", "kind": "call" },
+    { "from": "AFixtureGameMode", "to": "UFictionSubsystem", "kind": "type" }
+  ],
+  "assets": [
+    { "name": "FixtureMap", "path": "/Game/Fixture/Maps/FixtureMap.umap", "type": "Map", "size": 1024 },
+    { "name": "FixtureActor", "path": "/Game/Fixture/SyntheticActor.uasset", "type": "Blueprint", "size": 256 }
+  ],
+  "strings": [
+    { "value": "GMF_SYNTHETIC_ENTRYPOINT_MARKER", "offset": 4096 },
+    { "value": "GMF_SYNTHETIC_UNKNOWN_MARKER", "offset": 8192 }
+  ]
+}
