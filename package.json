@@ -1,0 +1,61 @@
+{
+  "name": "gmf",
+  "version": "0.4.0",
+  "description": "Game Modding Framework: an LLM-first catalog of modding operations, tools and knowledge.",
+  "author": "kronflux (https://github.com/kronflux)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kronflux/GamesModdingFramework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kronflux/GamesModdingFramework/issues"
+  },
+  "homepage": "https://github.com/kronflux/GamesModdingFramework#readme",
+  "keywords": [
+    "game-modding",
+    "unity",
+    "unreal",
+    "bepinex",
+    "melonloader",
+    "ue4ss",
+    "mcp",
+    "claude-code",
+    "codex"
+  ],
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "gmf": "bin/gmf.mjs"
+  },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "build-catalog": "node scripts/build-catalog.mjs",
+    "sync": "node scripts/sync.mjs",
+    "check": "node scripts/build-catalog.mjs --check && node scripts/sync.mjs --check && npm test"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "catalog/",
+    "knowledge/",
+    "skills/",
+    "agents/",
+    "templates/",
+    "hooks/",
+    "docs/",
+    ".claude-plugin/",
+    ".codex-plugin/",
+    ".agents/",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
+  ]
+}

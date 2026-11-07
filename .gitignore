@@ -1,0 +1,16 @@
+node_modules/
+coverage/
+decompiled/
+extracted/
+dumps/
+logs/
+*.log
+gmf.local.json
+gmf.profile.json
+gmf.plan.json
+.DS_Store
+backups/
+.hyperfocus/
+!test/fixtures/**/*.log
+.claude/worktrees/
+*.tgz
