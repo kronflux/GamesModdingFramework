@@ -1,0 +1,2 @@
+SYNTHETIC MANAGED ASSEMBLY
+namespace FixtureNamespace { public class FixtureTarget { public void FixtureMethod() { } } }
