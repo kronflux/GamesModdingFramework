@@ -1,0 +1,3 @@
+#!/bin/sh
+# Runs gmf by name from a plugin bin folder on PATH.
+exec node "$(dirname "$0")/gmf.mjs" "$@"
