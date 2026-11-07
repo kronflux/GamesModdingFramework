@@ -1,0 +1,7 @@
+{
+    "Instructions": "Copy this file to keybinds.json (same folder) to customize. Key names come from UE4SS's Key table (RE-UE4SS/docs/lua-api/table-definitions/key.md), e.g. F1, F2, LEFT_CONTROL. Only a flat 'Keybinds' object of KeyName -> label is supported by this template's reader (Scripts/core/util.lua Util.ParseKeybindsJSON) - no nesting, arrays, or escapes.",
+    "Keybinds": {
+        "F2": "toggle_example_feature",
+        "F3": "run_selftest"
+    }
+}

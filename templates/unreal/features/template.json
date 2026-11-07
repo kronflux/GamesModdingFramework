@@ -1,0 +1,17 @@
+{
+  "id": "unreal-features",
+  "engine": "unreal",
+  "type": "lua",
+  "kind": "feature",
+  "description": "Drop-in UE4SS Lua feature modules. Each exposes M.register(ctx) and is copied to Scripts/features/<name>.lua by unreal.scaffold (features input).",
+  "files": [
+    "godmode.lua",
+    "noclip.lua",
+    "teleport.lua",
+    "spawn-item.lua",
+    "economy.lua",
+    "infinite-health.lua",
+    "infinite-stamina.lua",
+    "feature-discovery.lua"
+  ]
+}

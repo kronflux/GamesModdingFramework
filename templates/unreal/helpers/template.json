@@ -1,0 +1,14 @@
+{
+  "id": "unreal-helpers",
+  "engine": "unreal",
+  "type": "lua",
+  "kind": "helper",
+  "description": "Small UE4SS Lua helper modules, copied to Scripts/helpers/<name>.lua by unreal.scaffold (helpers input).",
+  "files": [
+    "load-class.lua",
+    "object-cache.lua",
+    "session-log.lua",
+    "container-iter.lua",
+    "hook-probe.lua"
+  ]
+}

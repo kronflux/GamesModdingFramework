@@ -1,0 +1,13 @@
+{
+  "id": "unreal-dumper",
+  "engine": "unreal",
+  "type": "payload",
+  "kind": "payload",
+  "description": "GmfDumper, a thin UE4SS Lua wrapper over the native dump globals, with the vendored UEHelpers module and a settings fragment.",
+  "files": [
+    "Mods/GmfDumper/enabled.txt",
+    "Mods/GmfDumper/Scripts/main.lua",
+    "Mods/shared/UEHelpers/UEHelpers.lua",
+    "UE4SS-settings.dumpers.ini"
+  ]
+}

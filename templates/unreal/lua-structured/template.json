@@ -1,0 +1,18 @@
+{
+  "id": "unreal-lua-structured",
+  "engine": "unreal",
+  "type": "lua",
+  "kind": "scaffold",
+  "description": "A structured UE4SS Lua mod: a bootstrap main.lua, core modules (config, util, help, selftest), a dev-only systems module, a keybinds example and an in-game verification guide.",
+  "files": [
+    "Scripts/main.lua",
+    "Scripts/core/config.lua",
+    "Scripts/core/util.lua",
+    "Scripts/core/help.lua",
+    "Scripts/core/selftest.lua",
+    "Scripts/systems/dev.lua",
+    "keybinds.json.example",
+    "VERIFY.md",
+    "enabled.txt"
+  ]
+}

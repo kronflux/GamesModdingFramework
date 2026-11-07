@@ -1,0 +1,7 @@
+{
+  "id": "unreal-pak-blueprint",
+  "engine": "unreal",
+  "type": "pak",
+  "description": "A pak/Blueprint mod project with packaging notes and a pack manifest.",
+  "files": ["README.md", "pack.json"]
+}

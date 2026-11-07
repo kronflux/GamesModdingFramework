@@ -1,0 +1,8 @@
+{
+  "name": "{{name}}",
+  "author": "{{author}}",
+  "container": "pak",
+  "deployDir": "Content/Paks/LogicMods",
+  "tool": "repak",
+  "notes": "Cook assets with the matching Unreal Engine, then run repak pack before unreal.deploy."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "unreal-lua-minimal",
+  "engine": "unreal",
+  "type": "lua",
+  "description": "A minimal UE4SS Lua mod with one script and an enabled marker.",
+  "files": ["Scripts/main.lua", "enabled.txt"]
+}

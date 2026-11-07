@@ -1,0 +1,7 @@
+{
+  "id": "unreal-cpp",
+  "engine": "unreal",
+  "type": "cpp",
+  "description": "A UE4SS C++ mod with an xmake project and a CppUserModBase class.",
+  "files": ["xmake.lua", "Source/{{name}}/{{name}}.cpp", "README.md"]
+}
