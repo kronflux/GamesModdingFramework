@@ -1,0 +1,397 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "id": "dotnet",
+      "name": ".NET SDK",
+      "purpose": "Build C# Unity mods and run dotnet tools.",
+      "engine": "unity",
+      "license": "MIT",
+      "source": {
+        "type": "system",
+        "command": "dotnet"
+      },
+      "versionPolicy": "user-provided",
+      "entry": "dotnet",
+      "verify": {
+        "kind": "none",
+        "value": null
+      },
+      "effects": [
+        "read"
+      ],
+      "capabilities": [
+        "unity.build"
+      ]
+    },
+    {
+      "id": "ilspycmd",
+      "name": "ILSpy CLI",
+      "purpose": "Decompile Mono assemblies with ilspycmd.",
+      "engine": "unity",
+      "license": "MIT",
+      "source": {
+        "type": "dotnet-tool",
+        "package": "ilspycmd"
+      },
+      "versionPolicy": "user-provided",
+      "entry": "ilspycmd",
+      "verify": {
+        "kind": "none",
+        "value": null
+      },
+      "effects": [
+        "read"
+      ],
+      "capabilities": [
+        "unity.decompile.mono"
+      ]
+    },
+    {
+      "id": "cpp2il",
+      "name": "Cpp2IL",
+      "purpose": "Dump and decompile IL2CPP assemblies.",
+      "engine": "unity",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "SamboyCoding/Cpp2IL",
+        "tag": "2022.1.0-pre-release.21"
+      },
+      "versionPolicy": "tag",
+      "entry": null,
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unity.decompile.il2cpp"
+      ],
+      "assets": {
+        "win32": "^Cpp2IL-[^/]*-Windows[.]exe$",
+        "linux": "^Cpp2IL-[^/]*-Linux$",
+        "darwin": "^Cpp2IL-[^/]*-OSX$"
+      },
+      "notes": "Pinned to the 2022.1.0-pre-release.21 milestone build: it adds IL2CPP metadata versions 35, 38, 39 and 104-106 (Unity 6000.x up to 6000.5 alpha). Older stable releases cannot read Unity 6 games; only this pre-release was found to work. Il2CppDumper stops near metadata v31."
+    },
+    {
+      "id": "il2cppdumper",
+      "name": "Il2CppDumper",
+      "purpose": "Dump IL2CPP metadata and DummyDll assemblies.",
+      "engine": "unity",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "c01ns/Il2CppDumper",
+        "channel": "newest"
+      },
+      "versionPolicy": "newest",
+      "asset": "Il2CppDumper-.*\\.zip",
+      "entry": "Il2CppDumper.exe",
+      "verify": {
+        "kind": "none",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unity.decompile.il2cpp"
+      ]
+    },
+    {
+      "id": "assetstudio",
+      "name": "AssetStudioModCLI",
+      "purpose": "Export Unity assets (textures, sprites, audio, text, MonoBehaviours, meshes, fonts, shaders) from .assets files and bundles from the command line.",
+      "engine": "unity",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "aelurum/AssetStudio"
+      },
+      "versionPolicy": "stable",
+      "entry": "AssetStudioModCLI",
+      "entries": {
+        "win32": "AssetStudioModCLI.exe"
+      },
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unity.assets.extract"
+      ],
+      "assets": {
+        "win32": "^AssetStudioModCLI_net472_win32_64[.]zip$",
+        "linux": "^AssetStudioModCLI_net10_linux64[.]zip$",
+        "darwin": "^AssetStudioModCLI_net10_mac64[.]zip$"
+      },
+      "notes": "aelurum's AssetStudio fork (MIT), Unity 6 support up to 7000.0 since v0.20.0. The Windows build targets .NET Framework 4.7.2, which Windows 10 and 11 include; the Linux and macOS builds need the .NET 10 runtime. IL2CPP MonoBehaviours need Cpp2IL dummy assemblies (--assembly-folder). Fallbacks are in knowledge note unity.asset-tools."
+    },
+    {
+      "id": "assetripper",
+      "name": "AssetRipper",
+      "purpose": "Export Unity assets. GPL-3.0: download only, never vendor.",
+      "engine": "unity",
+      "license": "GPL-3.0",
+      "source": {
+        "type": "github",
+        "repo": "AssetRipper/AssetRipper",
+        "channel": "stable"
+      },
+      "versionPolicy": "stable",
+      "asset": "AssetRipper_(win|linux|mac)_x64\\.(zip|tar\\.xz)",
+      "entry": "AssetRipper.GUI.Free.exe",
+      "verify": {
+        "kind": "none",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unity.assets.export-project"
+      ],
+      "notes": "Fallback for a full Unity project export. AssetRipper 2.0.0 has no export command line: run AssetRipper.GUI.Free --headless --port <n>, then POST /LoadFolder and /Export/UnityProject with a Path form field. See knowledge note unity.asset-tools."
+    },
+    {
+      "id": "unitypy",
+      "name": "UnityPy",
+      "purpose": "Read and edit Unity assets from Python; gmf drives it through its own helper script.",
+      "engine": "unity",
+      "license": "MIT",
+      "source": {
+        "type": "pypi",
+        "package": "UnityPy",
+        "module": "UnityPy",
+        "extras": [
+          "Pillow"
+        ]
+      },
+      "versionPolicy": "newest",
+      "entry": "venv Python with UnityPy and Pillow",
+      "verify": {
+        "kind": "pip",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unity.assets.inspect",
+        "unity.assets.replace"
+      ]
+    },
+    {
+      "id": "ue4ss",
+      "name": "UE4SS",
+      "purpose": "Unreal Engine 4/5 scripting system and Lua/C++ mod loader.",
+      "engine": "unreal",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "UE4SS-RE/RE-UE4SS",
+        "tag": "experimental-latest"
+      },
+      "versionPolicy": "tag",
+      "asset": "^UE4SS_v[^/]*.zip$",
+      "entry": "dwmapi.dll",
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network",
+        "gameWrite"
+      ],
+      "capabilities": [
+        "unreal.scripts",
+        "unreal.dump"
+      ],
+      "notes": "Modern games, and every Unreal Engine 5.4+ game, need the rolling experimental-latest build; the versioned releases (v3.0.1 and older) lack the structural changes and UE 5.6 support. The zDEV- asset is the developer build with extra debug tooling."
+    },
+    {
+      "id": "repak",
+      "name": "repak",
+      "purpose": "List, unpack and pack Unreal Engine .pak files (no compressed or encrypted writes).",
+      "engine": "unreal",
+      "license": "MIT OR Apache-2.0",
+      "source": {
+        "type": "github",
+        "repo": "trumank/repak"
+      },
+      "versionPolicy": "stable",
+      "entry": "repak",
+      "entries": {
+        "win32": "repak.exe"
+      },
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unreal.pak.list",
+        "unreal.pak.unpack",
+        "unreal.pak.pack"
+      ],
+      "assets": {
+        "win32": "^repak_cli-x86_64-pc-windows-msvc[.]zip$",
+        "linux": "^repak_cli-x86_64-unknown-linux-gnu[.]tar[.]xz$"
+      },
+      "notes": "Pak versions up to 11 (UE 4.26-5.3) are tested upstream; later versions are likely supported but untested. Reads encrypted paks with --aes-key."
+    },
+    {
+      "id": "retoc",
+      "name": "retoc",
+      "purpose": "Convert Unreal Engine IoStore containers (.utoc/.ucas) to legacy .pak assets and back (to-legacy, to-zen).",
+      "engine": "unreal",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "trumank/retoc"
+      },
+      "versionPolicy": "stable",
+      "entry": "retoc",
+      "entries": {
+        "win32": "retoc.exe"
+      },
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unreal.iostore.to-legacy",
+        "unreal.iostore.to-zen"
+      ],
+      "assets": {
+        "win32": "^retoc_cli-x86_64-pc-windows-msvc[.]zip$",
+        "linux": "^retoc_cli-x86_64-unknown-linux-gnu[.]tar[.]xz$",
+        "darwin": "^retoc_cli-aarch64-apple-darwin[.]tar[.]xz$"
+      },
+      "notes": "UE 5.3+ well supported upstream. Mods for IoStore games ship as <Name>_P.pak, .utoc and .ucas made with to-zen --version UE5_x."
+    },
+    {
+      "id": "uassetgui",
+      "name": "UAssetGUI",
+      "purpose": "Convert a cooked Unreal asset to UAssetAPI JSON and back from the command line (tojson, fromjson).",
+      "engine": "unreal",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "atenfyr/UAssetGUI",
+        "tag": "experimental-latest"
+      },
+      "versionPolicy": "tag",
+      "entry": "UAssetGUI.exe",
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unreal.assets.inspect",
+        "unreal.assets.edit"
+      ],
+      "assets": {
+        "win32": "^UAssetGUI[.]exe$"
+      },
+      "notes": "Pinned to experimental-latest (v1.1.1+): the stable v1.1.0 cannot take a .usmap path or a major.minor engine version. Windows only (Wine elsewhere); needs the .NET desktop runtime."
+    },
+    {
+      "id": "xmake",
+      "name": "xmake",
+      "purpose": "Build Unreal C++ mods.",
+      "engine": "unreal",
+      "license": "Apache-2.0",
+      "source": {
+        "type": "system",
+        "command": "xmake"
+      },
+      "versionPolicy": "user-provided",
+      "entry": "xmake",
+      "verify": {
+        "kind": "none",
+        "value": null
+      },
+      "effects": [
+        "read"
+      ],
+      "capabilities": [
+        "unreal.build"
+      ]
+    },
+    {
+      "id": "rea",
+      "name": "REA",
+      "purpose": "Optional deep reverse-engineering provider (MCP/CLI).",
+      "engine": "core",
+      "license": "MIT",
+      "source": {
+        "type": "npm",
+        "package": "rea-agents"
+      },
+      "versionPolicy": "user-provided",
+      "entry": "rea",
+      "verify": {
+        "kind": "none",
+        "value": null
+      },
+      "effects": [
+        "read"
+      ],
+      "capabilities": [
+        "analyze.native"
+      ]
+    },
+    {
+      "id": "bepinex6-il2cpp",
+      "name": "BepInEx 6 IL2CPP (bleeding edge)",
+      "purpose": "Unity IL2CPP mod loader with Il2CppInterop; generates interop assemblies on first launch.",
+      "engine": "unity",
+      "license": "LGPL-2.1",
+      "source": {
+        "type": "bepinex-be",
+        "url": "https://builds.bepinex.dev/projects/bepinex_be"
+      },
+      "versionPolicy": "bleeding-edge",
+      "asset": "^BepInEx-Unity[.]IL2CPP-win-x64-6[.]0[.]0-be[.][0-9]+[+][0-9a-f]+[.]zip$",
+      "entry": "winhttp.dll",
+      "verify": {
+        "kind": "record-sha256",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network",
+        "gameWrite"
+      ],
+      "capabilities": [
+        "unity.loader.bepinex6-il2cpp"
+      ],
+      "notes": "Modern Unity IL2CPP games (Unity 6, IL2CPP metadata v35+) need the bleeding-edge build; stable BepInEx 5 has no IL2CPP support. builds.bepinex.dev publishes no checksum, so gmf records the SHA-256 it downloaded. The archive root (winhttp.dll, doorstop_config.ini, .doorstop_version, BepInEx/, dotnet/) goes next to the game exe."
+    }
+  ]
+}
