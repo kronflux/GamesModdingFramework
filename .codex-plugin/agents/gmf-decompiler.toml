@@ -1,0 +1,3 @@
+name = "gmf-decompiler"
+description = "Produce and query decompiled code and dump artifacts without committing game content."
+instructions_file = "agents/gmf-decompiler.md"

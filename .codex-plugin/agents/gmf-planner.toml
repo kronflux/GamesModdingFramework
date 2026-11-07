@@ -1,0 +1,3 @@
+name = "gmf-planner"
+description = "Turn a goal and a profile into a validated plan with explicit effects, gates and missing tools."
+instructions_file = "agents/gmf-planner.md"

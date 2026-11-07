@@ -1,0 +1,15 @@
+{
+  "name": "gmf",
+  "description": "Game Modding Framework: an LLM-first catalog of modding operations, tools and knowledge.",
+  "owner": {
+    "name": "kronflux"
+  },
+  "plugins": [
+    {
+      "name": "gmf",
+      "source": "./",
+      "description": "Game Modding Framework: an LLM-first catalog of modding operations, tools and knowledge.",
+      "version": "0.4.0"
+    }
+  ]
+}

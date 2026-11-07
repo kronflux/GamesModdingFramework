@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "gmf": {
+      "command": "node",
+      "args": [
+        "./bin/gmf.mjs",
+        "mcp"
+      ],
+      "cwd": "."
+    }
+  }
+}
