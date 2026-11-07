@@ -1,0 +1,17 @@
+{
+  "id": "unity-melonloader",
+  "engine": "unity",
+  "type": "mod",
+  "loader": "melonloader",
+  "backend": "mono|il2cpp",
+  "description": "MelonLoader 0.6+ mod with a MelonMod entry point and an MSBuild project; net472 for Mono games, net6.0 with interop references for IL2CPP games.",
+  "targetFramework": "net472|net6.0",
+  "kind": "scaffold",
+  "files": [
+    "$(ModName).csproj.tpl",
+    "Directory.Build.props.tpl",
+    "Mod.cs.tpl",
+    "Patches/ExamplePatch.cs.tpl",
+    "README.md.tpl"
+  ]
+}

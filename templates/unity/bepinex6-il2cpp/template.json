@@ -1,0 +1,17 @@
+{
+  "id": "unity-bepinex6-il2cpp",
+  "engine": "unity",
+  "type": "mod",
+  "loader": "bepinex6",
+  "backend": "il2cpp",
+  "description": "BepInEx 6 IL2CPP plugin that references the generated interop assemblies.",
+  "targetFramework": "net6.0",
+  "kind": "scaffold",
+  "files": [
+    "$(ModName).csproj.tpl",
+    "Directory.Build.props.tpl",
+    "Patches/ExamplePatch.cs.tpl",
+    "Plugin.cs.tpl",
+    "README.md.tpl"
+  ]
+}

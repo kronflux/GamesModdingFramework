@@ -1,0 +1,17 @@
+{
+  "id": "unity-bepinex5",
+  "engine": "unity",
+  "type": "mod",
+  "loader": "bepinex5",
+  "backend": "mono",
+  "description": "BepInEx 5 Mono plugin with a Harmony-ready Plugin class and an MSBuild project.",
+  "targetFramework": "net472",
+  "kind": "scaffold",
+  "files": [
+    "$(ModName).csproj.tpl",
+    "Directory.Build.props.tpl",
+    "Patches/ExamplePatch.cs.tpl",
+    "Plugin.cs.tpl",
+    "README.md.tpl"
+  ]
+}

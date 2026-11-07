@@ -1,0 +1,17 @@
+{
+  "id": "unity-bepinex6-mono",
+  "engine": "unity",
+  "type": "mod",
+  "loader": "bepinex6",
+  "backend": "mono",
+  "description": "BepInEx 6 Mono plugin with a BaseUnityPlugin entry point and an MSBuild project.",
+  "targetFramework": "netstandard2.1",
+  "kind": "scaffold",
+  "files": [
+    "$(ModName).csproj.tpl",
+    "Directory.Build.props.tpl",
+    "Patches/ExamplePatch.cs.tpl",
+    "Plugin.cs.tpl",
+    "README.md.tpl"
+  ]
+}

@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <GameDir>$(GameDir)</GameDir>
+    <ManagedDir>$(ManagedDir)</ManagedDir>
+    <LoaderDir>$(LoaderDir)</LoaderDir>
+    <InteropDir>$(InteropDir)</InteropDir>
+    <ModDeployDir>$(ModDeployDir)</ModDeployDir>
+  </PropertyGroup>
+</Project>
