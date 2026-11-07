@@ -1,0 +1,9 @@
+decompiled/
+extracted/
+dumps/
+logs/
+backups/
+.gmf/
+gmf.local.json
+gmf.profile.json
+gmf.plan.json
