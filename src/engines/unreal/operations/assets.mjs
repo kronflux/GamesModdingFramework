@@ -18,6 +18,7 @@ import {
   runResolvedTool,
   walkFiles,
 } from "./shared.mjs";
+import { aesArgs, requireKeyIfEncrypted, resolveAesKey } from "./encryption.mjs";
 
 export { PAK_TOOL_ID } from "./shared.mjs";
 
@@ -137,6 +138,10 @@ export const extractAssetsOperation = {
       gameDir: { type: "string" },
       filter: { type: "string", description: "Asset file name filter, e.g. DT_LoadingScreenTips." },
       outputDir: { type: "string" },
+      aesKey: {
+        type: "string",
+        description: "256-bit AES key for an encrypted game, as 0x-hex or base64. Also read from GMF_AES_KEY or the workspace gmf.local.json \"aesKey\". Never recorded.",
+      },
     },
     required: [],
   },
@@ -146,6 +151,8 @@ export const extractAssetsOperation = {
       assets: { type: "array" },
       outputDir: { type: "string" },
       container: { type: "string" },
+      encrypted: { type: "boolean" },
+      aesKeySource: { type: ["string", "null"] },
     },
   },
   effects: ["read", "workspaceWrite"],
@@ -170,22 +177,27 @@ export const extractAssetsOperation = {
     // The tool is resolved before the output folder exists, so a missing tool
     // leaves the workspace as it was.
     const tool = requireTool(context, iostore ? "retoc" : "repak");
+    // An encrypted game needs its key before anything runs; the key itself is
+    // passed to the tool and never stored.
+    const aes = resolveAesKey(inputs, context, context.env || process.env);
+    const encryption = requireKeyIfEncrypted(paksDir, aes);
+    const keyArgs = aesArgs(aes);
     fs.mkdirSync(outputDir, { recursive: true });
 
     if (iostore) {
       const retoc = tool;
-      await run(context, retoc, ["to-legacy", ...(filter ? ["--filter", filter] : []), paksDir, outputDir], "retoc to-legacy");
+      await run(context, retoc, [...keyArgs, "to-legacy", ...(filter ? ["--filter", filter] : []), paksDir, outputDir], "retoc to-legacy");
     } else {
       const repak = tool;
       const paks = fs.readdirSync(paksDir).filter((name) => name.toLowerCase().endsWith(".pak")).map((name) => path.join(paksDir, name));
       for (const pak of paks) {
         let include = [];
         if (filter) {
-          const listed = await run(context, repak, ["list", pak], "repak list");
+          const listed = await run(context, repak, [...keyArgs, "list", pak], "repak list");
           include = String(listed.stdout || "").split(/\r?\n/).map((line) => line.trim()).filter((line) => line && line.toLowerCase().includes(filter.toLowerCase()));
           if (include.length === 0) continue;
         }
-        await run(context, repak, ["unpack", "-o", outputDir, "-f", ...include.flatMap((entry) => ["-i", entry]), pak], "repak unpack");
+        await run(context, repak, [...keyArgs, "unpack", "-o", outputDir, "-f", ...include.flatMap((entry) => ["-i", entry]), pak], "repak unpack");
       }
     }
 
@@ -194,7 +206,14 @@ export const extractAssetsOperation = {
       .filter((relative) => /\.(uasset|umap|uexp|ubulk|uptnl)$/i.test(relative))
       .filter((relative) => !filter || relative.toLowerCase().includes(filter.toLowerCase()));
     return {
-      data: { assets, outputDir, container: iostore ? "iostore" : "pak", count: assets.length },
+      data: {
+        assets,
+        outputDir,
+        container: iostore ? "iostore" : "pak",
+        count: assets.length,
+        encrypted: encryption.encrypted,
+        aesKeySource: aes ? aes.source : null,
+      },
       evidence: [
         evidence({
           claim: `Extracted ${assets.length} asset files from the ${iostore ? "IoStore" : "pak"} game into the workspace`,

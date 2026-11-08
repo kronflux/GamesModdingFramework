@@ -43,7 +43,8 @@ also use IoStore containers (`.utoc` and `.ucas`).
 - A pak with a mismatched engine version fails to mount.
 - IoStore and pak content can both exist. Replacing one does not replace the
   other.
-- Encrypted assets need the key the game uses. Do not commit a key or a decrypted
-  asset.
+- Encrypted assets need the key the game uses (`unreal.extract_assets` takes
+  `aesKey`, `GMF_AES_KEY` or `gmf.local.json`). Do not commit a key or a
+  decrypted asset.
 - A replacement that changes the asset class or the import table can crash the
   cooker and the game.

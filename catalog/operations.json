@@ -2085,6 +2085,10 @@
           },
           "outputDir": {
             "type": "string"
+          },
+          "aesKey": {
+            "type": "string",
+            "description": "256-bit AES key for an encrypted game, as 0x-hex or base64. Also read from GMF_AES_KEY or the workspace gmf.local.json \"aesKey\". Never recorded."
           }
         },
         "required": []
@@ -2100,6 +2104,15 @@
           },
           "container": {
             "type": "string"
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "aesKeySource": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },

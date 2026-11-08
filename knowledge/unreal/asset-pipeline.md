@@ -70,7 +70,18 @@ edited, converted back and shipped in a separate container whose name ends in
   tables can crash the game.
 - A JSON written by UAssetGUI is pretty-printed (`"Key": "value"`); a search
   pattern must allow the space after the colon.
-- Encrypted games need the AES key (`--aes-key` for retoc and repak). gmf does
-  not look keys up; do not commit one.
+- Encrypted games: `unreal.extract_assets` reads the pak footer's encrypted-index
+  flag and the IoStore header's container flags. When a container is encrypted
+  it refuses with `GMF-E-GAME-002` unless a key is given, then passes
+  `--aes-key` to retoc or repak. The key comes from `--input aesKey=<key>`,
+  the `GMF_AES_KEY` environment variable, or `"aesKey"` in the workspace's
+  machine-local `gmf.local.json` (ignored by git), in that order; 64 hex digits
+  or 44 base64 characters. The result records only where the key came from,
+  never the key. Mods built by `unreal.pack_mod` are unencrypted; an encrypted
+  game still loads an unencrypted `_P` container (neither repak nor retoc
+  writes encrypted output). gmf does not look keys up; they come from the
+  game's own modding community, and committing one is a policy violation.
+  **Unverified:** no encrypted game was available when this was written; the
+  header offsets follow the UE 4.26 and UE 5 pak and IoStore formats.
 - Never commit extracted assets, JSON from them or built mod containers made
   from game content.

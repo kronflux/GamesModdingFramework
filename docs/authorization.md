@@ -45,7 +45,7 @@ Before a `gameWrite` operation overwrites an existing file, the operation copies
 - `GMF-W-ANTICHEAT-001`: an anti-cheat risk warning.
 - `GMF-E-TOOL-001`: a required tool is missing.
 - `GMF-E-PLAN-001`: an invalid plan or operation.
-- `GMF-E-GAME-001`: an invalid game path.
+- `GMF-E-GAME-001`: an invalid game path; `GMF-E-GAME-002`: the game's containers are AES-encrypted and no key was given.
 - `GMF-E-TEMPLATE-001`: an unknown template, feature or helper name.
 - `GMF-E-DUMP-001`: a normalized dump carries a reserved key such as a method body.
 - `GMF-E-SIG-001`: a signature matches more than once or not at all; `GMF-E-SIG-002`: an instruction the length decoder does not know.

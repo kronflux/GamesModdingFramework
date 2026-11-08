@@ -21,7 +21,9 @@ Asset mod (change a data table, a text, a value in a cooked asset):
 2. UE5 assets need a `.usmap`: dump one with UE4SS (`unreal.dump`) so it is in
    `dumps/`.
 3. Extract only what you need:
-   `gmf run unreal.extract_assets --input filter=<asset name>`.
+   `gmf run unreal.extract_assets --input filter=<asset name>`. If the
+   containers are encrypted the operation says so (`GMF-E-GAME-002`); add
+   `--input aesKey=<key>` or put the key in the workspace `gmf.local.json`.
 4. Convert to JSON: `gmf run unreal.inspect_asset --input assetPath=<mount path from step 3>`.
    Edit the JSON it names; change values, not structure.
 5. Stage it in a mod: `gmf run unreal.stage_asset --input mod=<Mod> --input jsonPath=<json>`.
