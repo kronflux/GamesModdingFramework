@@ -1,0 +1,6 @@
+# Pin LF so the generated catalog and host files compare byte for byte on every platform.
+* text=auto eol=lf
+*.cmd text eol=crlf
+# Synthetic fixtures and the upstream UE4SS helper keep their bytes.
+test/fixtures/** -text
+templates/unreal/dumper/Mods/shared/UEHelpers/UEHelpers.lua -text
