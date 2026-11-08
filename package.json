@@ -1,6 +1,6 @@
 {
   "name": "gmf",
-  "version": "0.4.0",
+  "version": "0.1.0",
   "description": "Game Modding Framework: an LLM-first catalog of modding operations, tools and knowledge.",
   "author": "kronflux (https://github.com/kronflux)",
   "repository": {

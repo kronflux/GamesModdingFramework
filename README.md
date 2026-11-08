@@ -2,7 +2,7 @@
 
 GMF is an LLM-first catalog of game modding operations, tools, knowledge, templates and skills. It identifies a game, selects the working toolchain, and exposes every capability as a structured operation an agent can discover and run.
 
-Status: 0.4.0. The catalog has 60 operations, 14 tool registrations, 50 knowledge notes, 11 templates and 24 skills, and every operation is also an MCP tool. The test suite runs on synthetic fixtures. The Unity path (IL2CPP, BepInEx 6) and the Unreal path (UE 5.6, UE4SS, IoStore asset mods) have each been run end to end on a shipped game.
+Status: 0.1.0. The catalog has 60 operations, 14 tool registrations, 50 knowledge notes, 11 templates and 24 skills, and every operation is also an MCP tool. The test suite runs on synthetic fixtures. The Unity path (IL2CPP, BepInEx 6) and the Unreal path (UE 5.6, UE4SS, IoStore asset mods) have each been run end to end on a shipped game.
 
 ## Ways to use gmf
 
@@ -25,7 +25,7 @@ globally from a packed copy:
 
 ```bash
 npm pack
-npm install -g ./gmf-0.4.0.tgz
+npm install -g ./gmf-0.1.0.tgz
 ```
 
 Then, from any folder:
