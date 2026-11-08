@@ -159,7 +159,9 @@ export function parseAuthor(author) {
 
 // Claude Code finds ./skills/, ./agents/ and ./hooks/hooks.json by itself and
 // rejects bare names in skills and agents, so the manifest lists none of them.
-export function claudeManifests(pkg) {
+// options.icon: a path inside the plugin, such as "./logo.png", listed in the
+// manifest for Anthropic's plugin directory when the file exists.
+export function claudeManifests(pkg, options = {}) {
   const author = parseAuthor(pkg.author);
   return {
     plugin: {
@@ -168,6 +170,7 @@ export function claudeManifests(pkg) {
       description: pkg.description,
       ...(author ? { author } : {}),
       license: pkg.license || "MIT",
+      ...(options.icon ? { icon: options.icon } : {}),
       mcpServers: {
         gmf: { command: "node", args: ["${CLAUDE_PLUGIN_ROOT}/bin/gmf.mjs", "mcp"] },
       },
@@ -251,7 +254,7 @@ function readPackage(root) {
 function expectedFiles(root, pkg) {
   const skills = discoverSkills(root);
   const agents = discoverAgents(root);
-  const claude = claudeManifests(pkg);
+  const claude = claudeManifests(pkg, { icon: fs.existsSync(path.join(root, "logo.png")) ? "./logo.png" : null });
   const codex = codexManifests(pkg);
 
   const files = new Map([

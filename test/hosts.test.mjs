@@ -229,3 +229,9 @@ test("a skill that lists a knowledge id under operations is rejected", () => {
   );
   validateSkillReferences([{ name: "s", operations: ["unity.build"], knowledge: ["unity.harmony"] }], catalog);
 });
+
+test("the plugin manifest lists an icon only when logo.png exists at the plugin root", () => {
+  assert.equal(claudeManifests(pkg).plugin.icon, undefined);
+  assert.equal(claudeManifests(pkg, { icon: "./logo.png" }).plugin.icon, "./logo.png");
+  assert.equal(claudeManifests(pkg, { icon: null }).plugin.icon, undefined);
+});
