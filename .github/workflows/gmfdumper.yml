@@ -7,6 +7,10 @@ name: GmfDumper native build
 #
 # Needs the repository secret UEPSEUDO_TOKEN: a token that can read Re-UE4SS/UEPseudo, the private
 # submodule every UE4SS build needs.
+#
+# Two jobs, on purpose. "build" compiles third-party code (the UE4SS tree and its Rust and CMake
+# build scripts), so it can only read this repository and no token is in the environment while
+# that code runs. "publish" holds the write permissions and runs none of that code.
 
 on:
   schedule:
@@ -19,17 +23,13 @@ on:
       - "scripts/build-dumper.mjs"
       - ".github/workflows/gmfdumper.yml"
 
-permissions:
-  contents: write
-  actions: write
-  issues: write
+permissions: {}
 
 concurrency:
   group: gmfdumper-native
   cancel-in-progress: false
 
 env:
-  GH_TOKEN: ${{ github.token }}
   RELEASE_TAG: gmfdumper-latest
   UE4SS_REPO: UE4SS-RE/RE-UE4SS
   UE4SS_TAG: experimental-latest
@@ -38,48 +38,67 @@ env:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: read
     defaults:
       run:
         shell: bash
+    outputs:
+      build: ${{ steps.check.outputs.build }}
+      asset: ${{ steps.ue4ss.outputs.asset }}
+      failed_step: ${{ steps.failed.outputs.step }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # The asset name, digest and commit come from another project's release. They are checked
+      # against a strict form here and only ever used through environment variables afterwards.
       - name: Find the latest experimental UE4SS build
         id: ue4ss
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh api "repos/$UE4SS_REPO/releases/tags/$UE4SS_TAG" > ue4ss-release.json
-          asset=$(jq -r '[.assets[] | select(.name | test("^UE4SS_v.*\\.zip$"))][0].name' ue4ss-release.json)
+          asset=$(jq -r '[.assets[] | select(.name | test("^UE4SS_v.*\\.zip$"))][0].name // ""' ue4ss-release.json)
           digest=$(jq -r '[.assets[] | select(.name | test("^UE4SS_v.*\\.zip$"))][0].digest // ""' ue4ss-release.json)
+          if ! [[ "$asset" =~ ^UE4SS_v[A-Za-z0-9._+-]+\.zip$ ]]; then echo "Unexpected asset name"; exit 1; fi
+          if ! [[ "$digest" =~ ^(sha256:[0-9a-f]{64})?$ ]]; then echo "Unexpected digest"; exit 1; fi
           short=$(echo "$asset" | sed -E 's/.*-g([0-9a-f]+)\.zip$/\1/')
-          if [ -z "$asset" ] || [ "$asset" = "null" ] || [ "$short" = "$asset" ]; then
-            echo "No UE4SS_v*.zip asset with a commit suffix on $UE4SS_TAG"; exit 1
-          fi
+          if ! [[ "$short" =~ ^[0-9a-f]{7,40}$ ]]; then echo "No commit suffix in the asset name"; exit 1; fi
           commit=$(gh api "repos/$UE4SS_REPO/commits/$short" --jq .sha)
+          if ! [[ "$commit" =~ ^[0-9a-f]{40}$ ]]; then echo "Unexpected commit id"; exit 1; fi
           source_hash=$(git rev-parse HEAD:native/gmfdumper)
-          echo "asset=$asset" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-          echo "commit=$commit" >> "$GITHUB_OUTPUT"
-          echo "source_hash=$source_hash" >> "$GITHUB_OUTPUT"
+          {
+            echo "asset=$asset"
+            echo "digest=$digest"
+            echo "commit=$commit"
+            echo "source_hash=$source_hash"
+          } >> "$GITHUB_OUTPUT"
           echo "UE4SS asset $asset, commit $commit, native source $source_hash"
 
       - name: Compare with the current release
         id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSET: ${{ steps.ue4ss.outputs.asset }}
+          SOURCE_HASH: ${{ steps.ue4ss.outputs.source_hash }}
         run: |
           build=true
           if gh release download "$RELEASE_TAG" --pattern build.json --dir previous 2>/dev/null; then
             have_asset=$(jq -r '.ue4ss_asset // ""' previous/build.json)
             have_source=$(jq -r '.source_hash // ""' previous/build.json)
-            if [ "$have_asset" = "${{ steps.ue4ss.outputs.asset }}" ] && [ "$have_source" = "${{ steps.ue4ss.outputs.source_hash }}" ]; then
-              build=false
-            fi
+            if [ "$have_asset" = "$ASSET" ] && [ "$have_source" = "$SOURCE_HASH" ]; then build=false; fi
           fi
           echo "build=$build" >> "$GITHUB_OUTPUT"
           if [ "$build" = "false" ]; then echo "up to date"; fi
 
+      # From here on third-party code is present. No step below has a token in its environment,
+      # and the checkout does not leave its token in the clone.
       - name: Check out UE4SS at the commit of that build
         id: checkout_ue4ss
         if: steps.check.outputs.build == 'true'
@@ -90,27 +109,80 @@ jobs:
           path: ue4ss-src
           submodules: recursive
           token: ${{ secrets.UEPSEUDO_TOKEN }}
+          persist-credentials: false
 
       - name: Build the native part
         id: native
         if: steps.check.outputs.build == 'true'
+        env:
+          ASSET: ${{ steps.ue4ss.outputs.asset }}
+          DIGEST: ${{ steps.ue4ss.outputs.digest }}
         run: |
           node scripts/build-dumper.mjs \
             --ue4ss "$GITHUB_WORKSPACE/ue4ss-src" \
             --out "$RUNNER_TEMP/gmfdumper-dist" \
             --build-dir "$RUNNER_TEMP/gmfdumper-build" \
-            --ue4ss-asset "${{ steps.ue4ss.outputs.asset }}" \
-            --ue4ss-digest "${{ steps.ue4ss.outputs.digest }}"
+            --ue4ss-asset "$ASSET" \
+            ${DIGEST:+--ue4ss-digest "$DIGEST"}
+
+      - name: Hand the build to the publish job
+        id: upload
+        if: steps.check.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmfdumper-native
+          path: |
+            ${{ runner.temp }}/gmfdumper-dist/GmfDumper-native.zip
+            ${{ runner.temp }}/gmfdumper-dist/build.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Name the step that failed
+        id: failed
+        if: failure()
+        env:
+          CHECKOUT: ${{ steps.checkout_ue4ss.outcome }}
+          NATIVE: ${{ steps.native.outcome }}
+          UPLOAD: ${{ steps.upload.outcome }}
+        run: |
+          step="find or compare the UE4SS build"
+          if [ "$CHECKOUT" = "failure" ]; then step="check out UE4SS (is UEPSEUDO_TOKEN set and valid?)"; fi
+          if [ "$NATIVE" = "failure" ]; then step="build the native part"; fi
+          if [ "$UPLOAD" = "failure" ]; then step="hand the build to the publish job"; fi
+          echo "step=$step" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_RESULT: ${{ needs.build.result }}
+      BUILD_WANTED: ${{ needs.build.outputs.build }}
+      ASSET: ${{ needs.build.outputs.asset }}
+      FAILED_STEP: ${{ needs.build.outputs.failed_step }}
+    steps:
+      - name: Fetch the build
+        if: needs.build.result == 'success' && needs.build.outputs.build == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: gmfdumper-native
+          path: dist
 
       - name: Replace the release assets
         id: publish
-        if: steps.check.outputs.build == 'true'
+        if: needs.build.result == 'success' && needs.build.outputs.build == 'true'
         run: |
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --prerelease --title "GmfDumper native part (rolling)" \
               --notes "The C++ part of GmfDumper, built against the latest experimental UE4SS. Replaced by a workflow; build.json names the UE4SS build it matches. gmf downloads it at deploy time."
           fi
-          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/gmfdumper-dist/GmfDumper-native.zip" "$RUNNER_TEMP/gmfdumper-dist/build.json" --clobber
+          gh release upload "$RELEASE_TAG" dist/GmfDumper-native.zip dist/build.json --clobber
           gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | while read -r name; do
             if [ "$name" != "GmfDumper-native.zip" ] && [ "$name" != "build.json" ]; then
               gh release delete-asset "$RELEASE_TAG" "$name" --yes
@@ -118,22 +190,24 @@ jobs:
           done
           gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name'
 
+      - name: Say when nothing was built
+        if: needs.build.result == 'success' && needs.build.outputs.build != 'true'
+        run: echo "up to date"
+
       - name: Delete runs of this workflow older than 7 days
         if: always()
         run: |
-          cutoff=$(node -e "console.log(new Date(Date.now() - 7 * 86400000).toISOString())")
+          cutoff=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
           gh run list --workflow gmfdumper.yml --limit 200 --json databaseId,createdAt,status \
             --jq ".[] | select(.status == \"completed\" and .createdAt < \"$cutoff\") | .databaseId" |
             while read -r id; do gh run delete "$id" || true; done
 
       - name: Report a failed build
-        if: failure() && steps.check.outputs.build == 'true'
+        if: always() && (needs.build.result == 'failure' || steps.publish.outcome == 'failure')
         run: |
-          step="unknown"
-          if [ "${{ steps.checkout_ue4ss.outcome }}" = "failure" ]; then step="check out UE4SS (is UEPSEUDO_TOKEN set and valid?)"; fi
-          if [ "${{ steps.native.outcome }}" = "failure" ]; then step="build the native part"; fi
-          if [ "${{ steps.publish.outcome }}" = "failure" ]; then step="replace the release assets"; fi
-          body="The step \"$step\" failed for UE4SS asset ${{ steps.ue4ss.outputs.asset }}. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. The release keeps its previous assets."
+          step="$FAILED_STEP"
+          if [ -z "$step" ]; then step="replace the release assets"; fi
+          body="The step \"$step\" failed for UE4SS asset ${ASSET:-unknown}. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. The release keeps its previous assets."
           number=$(gh issue list --state open --search "\"$ISSUE_TITLE\" in:title" --json number,title --jq "[.[] | select(.title == \"$ISSUE_TITLE\")][0].number // empty")
           if [ -n "$number" ]; then
             gh issue comment "$number" --body "$body"

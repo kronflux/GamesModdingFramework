@@ -87,7 +87,7 @@ function stubs({ onSleep = () => {}, running = [false] } = {}) {
       onSleep(ticks);
     },
   };
-  return { processes, clock, calls, launches: () => calls.filter(([name]) => name !== "isExecutableRunning") };
+  return { processes, clock, calls, sleeps: () => ticks, launches: () => calls.filter(([name]) => name !== "isExecutableRunning") };
 }
 
 async function run(env, stub, inputs = {}, authorizations = AUTH, extra = {}) {
@@ -326,4 +326,28 @@ test("renderConfig writes only keys the mod knows and honours the inputs", () =>
   assert.match(quick, /default_profile = "quick"/);
   assert.match(quick, /quit_when_done = false/);
   assert.ok(full.endsWith("\n") && !full.includes("\r"));
+});
+
+test("an app id that is not a number is not sent to Steam: the executable is started instead", async () => {
+  const env = setup("badid");
+  const stub = stubs({ running: [true] });
+  const result = await run(env, stub, { waitMinutes: 0.1 }, AUTH, { profile: { store: { id: "steam", appId: "480&hostname" } } });
+  assert.equal(result.ok, true, result.error?.message);
+  assert.equal(result.data.launch.method, "exe");
+  assert.equal(stub.launches().some(([name]) => name === "openUrl"), false);
+});
+
+test("a game that cannot be started is reported at once, without waiting", async () => {
+  const env = setup("nostart");
+  const stub = stubs();
+  stub.processes.launchDetached = async () => {
+    const error = new Error("GMF-E-EXEC-001: Game.exe could not be started: ENOENT");
+    error.code = "GMF-E-EXEC-001";
+    throw error;
+  };
+  const result = await run(env, stub, { waitMinutes: 10 });
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "GMF-E-EXEC-001");
+  assert.match(result.error.message, /could not be started/);
+  assert.equal(stub.sleeps?.() ?? 0, 0, "no polling happened");
 });

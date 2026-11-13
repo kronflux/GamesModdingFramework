@@ -247,6 +247,8 @@ export function deployDumperHelper(context, loader) {
 }
 
 const NATIVE_TOOL = "gmfdumper-native";
+// Written beside the deployed dlls/main.dll: a copy of the release's build.json.
+const DEPLOYED_BUILD_FILE = "build.json";
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 
 function readJsonObject(file) {
@@ -260,7 +262,15 @@ function readJsonObject(file) {
 
 // A dll built for another UE4SS build can crash the game, so one that is not replaced by a matching
 // build is backed up and removed.
+// Whether the deployed dlls/main.dll has a build.json beside it that names the installed UE4SS build.
+function deployedMatches(dll, record) {
+  if (!record || !fs.existsSync(dll)) return false;
+  const build = readJsonObject(path.join(path.dirname(dll), DEPLOYED_BUILD_FILE));
+  return Boolean(build && build.ue4ss_asset && build.ue4ss_asset === record.asset);
+}
+
 function removeStaleDll(context, dll) {
+  fs.rmSync(path.join(path.dirname(dll), DEPLOYED_BUILD_FILE), { force: true });
   if (!fs.existsSync(dll)) return [];
   if (!context?.workspace?.root) {
     throw gmfError(
@@ -284,13 +294,13 @@ export async function deployNativePart(context, loader) {
   const authorization = resolveAuthorization({ effects: ["toolInstall"], plan, overrides });
   let result;
   let backup = [];
+  const record = readUe4ssInstall(loader.path);
   if (!authorization.allowed) {
     result = {
       native: "not_authorized",
       advice: 'Add a toolInstall authorization to install the native part, or pass --authorized toolInstall --source "<user instruction>".',
     };
   } else {
-    const record = readUe4ssInstall(loader.path);
     if (!record) {
       result = {
         native: "unknown",
@@ -301,7 +311,13 @@ export async function deployNativePart(context, loader) {
       if (result.native === "installed") backup = result.backup;
     }
   }
-  if (result.native !== "installed") backup = removeStaleDll(context, dll);
+  if (result.native !== "installed") {
+    // A part that could not be refreshed stays only when its own record says it was built for the
+    // installed UE4SS build. Any other part is removed: it can crash the game.
+    const keep = (result.native === "unavailable" || result.native === "not_authorized") && deployedMatches(dll, record);
+    if (keep) result.keptExisting = true;
+    else backup = removeStaleDll(context, dll);
+  }
   return { ...result, backup };
 }
 
@@ -335,6 +351,9 @@ async function installNative(context, loader, record, dll, source) {
     };
   }
   const [deployed] = copyTreeWithBackup(context, [{ source: installed.path, target: dll }]);
+  // The record beside the DLL says which UE4SS build it was made for, for later deploys that
+  // cannot download.
+  fs.writeFileSync(path.join(path.dirname(dll), DEPLOYED_BUILD_FILE), `${JSON.stringify(build, null, 2)}\n`);
   return {
     native: "installed",
     installedAsset: record.asset,

@@ -3,8 +3,8 @@
 //
 // Replacing a folder is destructive, so the output is confined: it must be a folder below the
 // workspace, and an existing folder is replaced only when it carries the marker file of an
-// earlier build. The new docs are built beside the target and swapped in, so a failed build
-// leaves the previous docs in place.
+// earlier build. The new docs are built beside the target and moved into place by renaming, so
+// a failed build or a failed move leaves the previous docs in place.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -17,6 +17,7 @@ import { resolveRun } from "./verify_dump.mjs";
 const MARKER = ".gmfdocs";
 const MARKER_SCHEMA = "gmf.docs/1";
 const BUILDING_SUFFIX = ".building";
+const OLD_SUFFIX = ".old";
 const MAX_LISTED_LINKS = 50;
 
 // The docs folder for `outputDir`: a folder below the workspace root, never the root itself.
@@ -33,23 +34,60 @@ export function resolveDocsDir(root, outputDir) {
   return target;
 }
 
-function entriesOf(dir) {
+// What is at `dir`: nothing, an empty folder, an earlier docs build, someone else's folder, or a file.
+function stateOf(dir, fsx) {
+  let stat;
   try {
-    return fs.readdirSync(dir);
+    stat = fsx.statSync(dir);
   } catch {
-    return null;
+    return "absent";
+  }
+  if (!stat.isDirectory()) return "file";
+  const names = fsx.readdirSync(dir);
+  if (names.length === 0) return "empty";
+  return names.includes(MARKER) ? "ours" : "foreign";
+}
+
+// A path may be replaced when it is absent, an empty folder, or an earlier docs build.
+function assertReplaceable(dir, fsx) {
+  const state = stateOf(dir, fsx);
+  if (state === "file") {
+    throw gmfError("GMF-E-PLAN-001", `${dir} is not a folder, so it is not replaced.`, "Choose another outputDir.");
+  }
+  if (state === "foreign") {
+    throw gmfError(
+      "GMF-E-PLAN-001",
+      `${dir} is not a docs build: it has files and no ${MARKER} marker, so it is not replaced.`,
+      "Choose another outputDir, or empty the folder yourself.",
+    );
   }
 }
 
-// A folder may be replaced when it is absent, empty, or an earlier docs build.
-function assertReplaceable(dir) {
-  const names = entriesOf(dir);
-  if (names === null || names.length === 0 || names.includes(MARKER)) return;
-  throw gmfError(
-    "GMF-E-PLAN-001",
-    `${dir} is not a docs build: it has files and no ${MARKER} marker, so it is not replaced.`,
-    "Choose another outputDir, or empty the folder yourself.",
-  );
+// Puts the finished build at `target` by renaming, so the previous docs are never deleted before
+// the new ones are in place. When the move fails, the previous docs are put back.
+function swapIn(target, building, old, fsx) {
+  const had = stateOf(target, fsx) !== "absent";
+  try {
+    if (had) fsx.renameSync(target, old);
+    try {
+      fsx.renameSync(building, target);
+    } catch (error) {
+      if (had) fsx.renameSync(old, target);
+      throw error;
+    }
+  } catch (error) {
+    fsx.rmSync(building, { recursive: true, force: true });
+    throw gmfError(
+      "GMF-E-EXEC-001",
+      `The new docs could not be moved into place (${error.message}). The previous docs are unchanged.`,
+      "Close programs that have the docs folder open, then run unreal.build_docs again.",
+    );
+  }
+  try {
+    fsx.rmSync(old, { recursive: true, force: true });
+  } catch {
+    // The old build carries its marker, so the next call removes it.
+  }
 }
 
 export const buildDocsOperation = {
@@ -86,13 +124,16 @@ export const buildDocsOperation = {
   async handler(inputs = {}, context = {}) {
     const root = workspaceRoot(context);
     const target = resolveDocsDir(root, inputs.outputDir || "gamedocs");
-    assertReplaceable(target);
+    const fsx = context.fsImpl || fs;
     const building = `${target}${BUILDING_SUFFIX}`;
-    assertReplaceable(building);
+    const old = `${target}${OLD_SUFFIX}`;
+    for (const dir of [target, building, old]) assertReplaceable(dir, fsx);
     const { name, dir } = resolveRun(inputs.run, context);
     const textDir = path.join(root, "extracted", "unreal", "text");
 
+    // Leftovers of an interrupted build; both were checked to be ours or empty.
     fs.rmSync(building, { recursive: true, force: true });
+    fs.rmSync(old, { recursive: true, force: true });
     let built;
     try {
       // The marker goes in first, so an interrupted build is still recognized as ours.
@@ -112,8 +153,7 @@ export const buildDocsOperation = {
         "This is a defect of the builder; report the run and the first broken link.",
       );
     }
-    fs.rmSync(target, { recursive: true, force: true });
-    fs.renameSync(building, target);
+    swapIn(target, building, old, fsx);
 
     const missing = built.sections.filter((section) => section.missing).map((section) => ({ name: section.name, reason: section.missing }));
     return {

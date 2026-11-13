@@ -146,3 +146,55 @@ test("container text is added when textDir is given, and reported missing when i
   assert.equal(viaOperation.ok, true, viaOperation.error?.message);
   assert.ok(fs.existsSync(path.join(ws.root, "gamedocs", "settings", "Demo__Config__DefaultGame.md")));
 });
+
+test("an outputDir that names a file is refused and the file is kept", async (t) => {
+  const ws = makeWorkspace(t);
+  write(path.join(ws.root, "notes.md"), "keep me\n");
+  const result = await executeOperation("unreal.build_docs", { outputDir: "notes.md" }, ws.context);
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "GMF-E-PLAN-001");
+  assert.match(result.error.message, /not a folder/);
+  assert.equal(fs.readFileSync(path.join(ws.root, "notes.md"), "utf8"), "keep me\n");
+});
+
+test("a swap that fails keeps the previous docs with their marker, and the next build succeeds", async (t) => {
+  const ws = makeWorkspace(t);
+  assert.equal((await executeOperation("unreal.build_docs", {}, ws.context)).ok, true);
+  const docs = path.join(ws.root, "gamedocs");
+  fs.writeFileSync(path.join(docs, "from-first-build.md"), "first\n");
+
+  // The second rename (the new docs into place) fails, as when a program holds the folder open.
+  let renames = 0;
+  const fsImpl = { ...fs, renameSync: (from, to) => {
+    renames += 1;
+    if (renames === 2) throw Object.assign(new Error("EPERM: operation not permitted"), { code: "EPERM" });
+    return fs.renameSync(from, to);
+  } };
+  const failed = await executeOperation("unreal.build_docs", {}, { ...ws.context, fsImpl });
+  assert.equal(failed.ok, false);
+  assert.equal(failed.error.code, "GMF-E-EXEC-001");
+  assert.ok(fs.existsSync(path.join(docs, ".gmfdocs")), "the marker of the previous build is still there");
+  assert.ok(fs.existsSync(path.join(docs, "from-first-build.md")), "the previous docs are still there");
+  assert.equal(fs.existsSync(`${docs}.old`), false);
+  assert.equal(fs.existsSync(`${docs}.building`), false);
+
+  const again = await executeOperation("unreal.build_docs", {}, ws.context);
+  assert.equal(again.ok, true, again.error?.message);
+  assert.equal(fs.existsSync(path.join(docs, "from-first-build.md")), false);
+});
+
+test("leftovers of an interrupted build are cleaned when they are ours and refused when they are not", async (t) => {
+  const ws = makeWorkspace(t);
+  const docs = path.join(ws.root, "gamedocs");
+  write(path.join(`${docs}.building`, ".gmfdocs"), "{}");
+  write(path.join(`${docs}.old`, ".gmfdocs"), "{}");
+  const cleaned = await executeOperation("unreal.build_docs", {}, ws.context);
+  assert.equal(cleaned.ok, true, cleaned.error?.message);
+  assert.equal(fs.existsSync(`${docs}.old`), false);
+
+  write(path.join(`${docs}.old`, "someone-elses.txt"), "x");
+  const refused = await executeOperation("unreal.build_docs", {}, ws.context);
+  assert.equal(refused.ok, false);
+  assert.match(refused.error.message, /not a docs build/);
+  assert.ok(fs.existsSync(path.join(`${docs}.old`, "someone-elses.txt")));
+});

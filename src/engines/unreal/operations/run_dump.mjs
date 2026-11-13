@@ -159,14 +159,24 @@ export const runDumpOperation = {
     const knownRuns = new Set(listRuns(loader.path).map((run) => run.name));
     const knownCrashes = new Set(crashDumps(crashDirs));
 
-    const appId = context.profile?.store?.appId || context.workspace?.profile?.store?.appId || detectStore(gameDir).appId || null;
+    // The app id comes from files in the game folder, so only a plain number is sent to Steam.
+    const found = context.profile?.store?.appId || context.workspace?.profile?.store?.appId || detectStore(gameDir).appId || null;
+    const appId = /^[0-9]{1,12}$/.test(String(found ?? "")) ? String(found) : null;
     let launch;
-    if (appId) {
-      launch = { method: "steam", target: `steam://rungameid/${appId}` };
-      processes.openUrl(launch.target);
-    } else {
-      launch = { method: "exe", target: exe };
-      processes.launchDetached(exe, [], { cwd: path.dirname(exe) });
+    try {
+      if (appId) {
+        launch = { method: "steam", target: `steam://rungameid/${appId}` };
+        await processes.openUrl(launch.target);
+      } else {
+        launch = { method: "exe", target: exe };
+        await processes.launchDetached(exe, [], { cwd: path.dirname(exe) });
+      }
+    } catch (error) {
+      throw gmfError(
+        "GMF-E-EXEC-001",
+        `GMF-E-EXEC-001: the game could not be started (${launch.method}: ${launch.target}): ${error.message}`,
+        "Start the game yourself; GmfDumper runs by itself. Then call unreal.dump with collect=true.",
+      );
     }
 
     const deadline = clock.now() + waitMinutes * 60_000;

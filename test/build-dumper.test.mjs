@@ -57,3 +57,10 @@ test("packageNative writes a zip holding dlls/main.dll and build.json, and build
   assert.equal(JSON.parse(fs.readFileSync(path.join(out, "build.json"), "utf8")).ue4ss_asset, "A.zip");
   assert.deepEqual(fs.readdirSync(out).sort(), ["GmfDumper-native.zip", "build.json"]);
 });
+
+test("cachedSourceDir reads the UE4SS tree a build folder was configured for", async () => {
+  const { cachedSourceDir } = await import("../scripts/build-dumper.mjs");
+  const cache = "# comment\nCMAKE_BUILD_TYPE:STRING=Game__Shipping__Win64\nGMF_UE4SS_SOURCE_DIR:PATH=C:/src/ue4ss-a\n";
+  assert.equal(cachedSourceDir(cache), "C:/src/ue4ss-a");
+  assert.equal(cachedSourceDir("CMAKE_BUILD_TYPE:STRING=x\n"), null);
+});

@@ -61,8 +61,9 @@ function preWrite(workspace, payload) {
 
   const block = (reason) => ({ stdout: "", decision: "block", reason });
 
-  const gameDir = workspace.local?.gameDir;
-  if (gameDir && isUnder(gameDir, resolved)) {
+  // The game folder is named by the machine paths file, or only by the profile.
+  const gameDirs = [workspace.local?.gameDir, workspace.profile?.game?.installDir].filter((dir) => typeof dir === "string" && dir.trim() !== "");
+  if (gameDirs.some((dir) => isUnder(dir, resolved))) {
     return block(`${resolved} is inside the game install folder. Write mod output under the workspace mods/ folder and deploy it with a gated operation.`);
   }
   for (const dir of GUARDED_DIRS) {

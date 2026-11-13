@@ -208,3 +208,18 @@ test("session-start points at gamedocs/overview.md when the docs are built", () 
     cleanup(ws);
   }
 });
+
+test("pre-write blocks the game folder when it is known only from the profile", () => {
+  const ws = makeWorkspace();
+  try {
+    fs.writeFileSync(path.join(ws.root, "gmf.local.json"), JSON.stringify({ version: 1 }));
+    const profile = JSON.parse(fs.readFileSync(path.join(ws.root, "gmf.profile.json"), "utf8"));
+    profile.game = { installDir: ws.gameDir };
+    fs.writeFileSync(path.join(ws.root, "gmf.profile.json"), JSON.stringify(profile));
+    const result = handleHook("pre-write", { tool_input: { file_path: path.join(ws.gameDir, "ue4ss", "UE4SS-settings.ini") } }, ws.context);
+    assert.equal(result.decision, "block");
+    assert.match(result.reason, /inside the game install folder/);
+  } finally {
+    cleanup(ws);
+  }
+});

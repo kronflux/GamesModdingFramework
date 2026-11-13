@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { isExecutableRunning, launchDetached, openUrl, runProcess, spawnOwned, stopOwned, withTimeout } from "../src/core/processes.mjs";
@@ -47,47 +48,100 @@ test("runProcess decodes multi-byte output as UTF-8 and reports a non-zero exit"
   assert.equal(result.timedOut, false);
 });
 
-test("launchDetached spawns detached and unrefs", () => {
+test("launchDetached spawns detached and unrefs", async () => {
   const calls = [];
   let unrefs = 0;
   const spawnImpl = (cmd, args, options) => {
     calls.push({ cmd, args, options });
     return { pid: 4321, unref: () => { unrefs += 1; } };
   };
-  const result = launchDetached("C:\\x\\Game.exe", ["-a"], { cwd: "C:\\x", spawnImpl });
+  const result = await launchDetached("C:\\x\\Game.exe", ["-a"], { cwd: "C:\\x", spawnImpl });
   assert.deepEqual(result, { pid: 4321 });
   assert.equal(calls.length, 1);
   assert.equal(calls[0].cmd, "C:\\x\\Game.exe");
   assert.deepEqual(calls[0].args, ["-a"]);
   assert.equal(calls[0].options.detached, true);
   assert.equal(calls[0].options.stdio, "ignore");
+  assert.equal(calls[0].options.shell, false);
   assert.equal(calls[0].options.cwd, "C:\\x");
   assert.equal(unrefs, 1);
 });
 
-test("openUrl picks the command per platform and refuses file: URLs", () => {
+test("launchDetached rejects when the program cannot be started, and resolves once it has", async () => {
+  const failing = () => {
+    const child = new EventEmitter();
+    child.unref = () => {};
+    setImmediate(() => child.emit("error", new Error("spawn nope ENOENT")));
+    return child;
+  };
+  await assert.rejects(launchDetached("nope", [], { spawnImpl: failing }), (error) => {
+    assert.equal(error.code, "GMF-E-EXEC-001");
+    assert.match(error.message, /nope could not be started: spawn nope ENOENT/);
+    return true;
+  });
+  const starting = () => {
+    const child = new EventEmitter();
+    child.pid = 77;
+    child.unref = () => {};
+    setImmediate(() => child.emit("spawn"));
+    return child;
+  };
+  assert.deepEqual(await launchDetached("ok", [], { spawnImpl: starting }), { pid: 77 });
+  const throwing = () => {
+    throw new Error("EACCES");
+  };
+  await assert.rejects(launchDetached("x", [], { spawnImpl: throwing }), /x could not be started: EACCES/);
+});
+
+test("openUrl uses the platform handler without a shell and refuses other schemes and unsafe characters", async () => {
   const calls = [];
-  const spawnImpl = (cmd, args) => {
-    calls.push([cmd, args]);
+  const spawnImpl = (cmd, args, options) => {
+    calls.push([cmd, args, options.shell]);
     return { unref() {} };
   };
-  assert.deepEqual(openUrl("steam://run/1", { platform: "win32", spawnImpl }), {
-    command: "cmd",
-    args: ["/c", "start", "", "steam://run/1"],
+  assert.deepEqual(await openUrl("steam://rungameid/480", { platform: "win32", spawnImpl }), {
+    command: "rundll32.exe",
+    args: ["url.dll,FileProtocolHandler", "steam://rungameid/480"],
   });
-  assert.deepEqual(openUrl("https://example.com/", { platform: "darwin", spawnImpl }), {
+  assert.deepEqual(await openUrl("https://example.com/?a=1&b=2", { platform: "darwin", spawnImpl }), {
     command: "open",
-    args: ["https://example.com/"],
+    args: ["https://example.com/?a=1&b=2"],
   });
-  assert.deepEqual(openUrl("http://example.com/", { platform: "linux", spawnImpl }), {
+  assert.deepEqual(await openUrl("http://example.com/", { platform: "linux", spawnImpl }), {
     command: "xdg-open",
     args: ["http://example.com/"],
   });
   assert.equal(calls.length, 3);
-  for (const url of ["file:///C:/Windows/notepad.exe", "javascript:alert(1)", "not a url"]) {
-    assert.throws(() => openUrl(url, { platform: "win32", spawnImpl }), (error) => error.code === "GMF-E-PLAN-001");
+  assert.ok(calls.every(([command, , shell]) => command !== "cmd" && shell === false), "never through cmd or a shell");
+  for (const url of [
+    "file:///C:/Windows/notepad.exe",
+    "javascript:alert(1)",
+    "not a url",
+    "steam://rungameid/480 & calc",
+    'https://example.com/"x"',
+    "https://example.com/a^b",
+    "https://example.com/a|b",
+  ]) {
+    await assert.rejects(openUrl(url, { platform: "win32", spawnImpl }), (error) => error.code === "GMF-E-PLAN-001", url);
   }
   assert.equal(calls.length, 3);
+});
+
+test("isExecutableRunning on linux sees a game under Proton by its arguments, not another game of the same name", async () => {
+  const exe = "/games/Demo/Binaries/Win64/Demo-Win64-Shipping.exe";
+  const procFs = (cmdline) => ({
+    readdirSync: () => ["1", "42", "self"],
+    readlinkSync: (file) => (file.endsWith("/42/exe") ? "/usr/bin/wine64-preloader" : "/usr/bin/bash"),
+    readFileSync: (file) => (file.endsWith("/42/cmdline") ? cmdline : "bash\0"),
+  });
+  const proton = "/usr/bin/wine64-preloader\0Z:\\games\\Demo\\Binaries\\Win64\\Demo-Win64-Shipping.exe\0-fullscreen\0";
+  assert.equal(await isExecutableRunning(exe, { platform: "linux", procFs: procFs(proton) }), true);
+  const otherFolder = "/usr/bin/wine64-preloader\0Z:\\games\\Other\\Binaries\\Linux\\Demo-Win64-Shipping.exe\0";
+  assert.equal(await isExecutableRunning(exe, { platform: "linux", procFs: procFs(otherFolder) }), false);
+  const native = { readdirSync: () => ["7"], readlinkSync: () => exe, readFileSync: () => "" };
+  assert.equal(await isExecutableRunning(exe, { platform: "linux", procFs: native }), true);
+  const unreadable = { readdirSync: () => { throw new Error("EACCES"); } };
+  assert.equal(await isExecutableRunning(exe, { platform: "linux", procFs: unreadable }), false);
 });
 
 test("isExecutableRunning matches the full path only, not the image name", async () => {

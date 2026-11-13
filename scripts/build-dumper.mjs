@@ -78,6 +78,12 @@ export function packageNative({ dll, out, build }) {
   return { zip, buildJson };
 }
 
+// The UE4SS source folder recorded in a build folder's CMakeCache.txt, or null.
+export function cachedSourceDir(cacheText) {
+  const match = /^GMF_UE4SS_SOURCE_DIR:[A-Z]+=(.*)$/m.exec(String(cacheText));
+  return match ? match[1].trim() : null;
+}
+
 // The git tree hash of native/gmfdumper at HEAD: it changes exactly when the native source does.
 export function sourceHash() {
   const result = spawnSync("git", ["rev-parse", "HEAD:native/gmfdumper"], { cwd: REPO_ROOT, encoding: "utf8" });
@@ -121,7 +127,12 @@ export function main(argv) {
   // UE4SS's patternsleuth dependency asks for a nightly Rust toolchain; it builds with stable.
   if (!env.RUSTUP_TOOLCHAIN) env.RUSTUP_TOOLCHAIN = "stable";
   const plan = buildPlan(args);
-  if (!fs.existsSync(path.join(args.buildDir, "build.ninja"))) run(plan.configure, env);
+  // Always configure: a reused build folder may have been set up for another UE4SS tree.
+  run(plan.configure, env);
+  const configured = cachedSourceDir(fs.readFileSync(path.join(args.buildDir, "CMakeCache.txt"), "utf8"));
+  if (!configured || path.resolve(configured).toLowerCase() !== args.ue4ss.toLowerCase()) {
+    throw new Error(`The build folder ${args.buildDir} is configured for ${configured}, not ${args.ue4ss}. Delete it and run again.`);
+  }
   run(plan.build, env);
   if (!fs.existsSync(plan.dll)) throw new Error(`The build ended without ${plan.dll}`);
   const result = packageNative({

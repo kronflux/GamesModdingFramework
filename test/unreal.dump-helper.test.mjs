@@ -430,3 +430,43 @@ test("an incomplete run is refused", () => {
   assert.equal(fs.existsSync(path.join(workspace.root, "dumps")), false, "nothing is written");
   assert.throws(() => collectRun(ue4ss, workspace.root, { run: "no-such-run" }), (error) => error.code === "GMF-E-PLAN-001");
 });
+
+// ---- a native part that is already deployed ----------------------------------------------------
+
+async function deployedNative(name) {
+  const game = nativeGame(name);
+  const context = nativeContext(name, { fetchImpl: releaseFetch(nativeZip(name, { builtFor: INSTALL_ASSET })) });
+  const first = await executeOperation("unreal.deploy_dumper", { gameDir: game.gameDir }, context);
+  assert.equal(first.data.native.native, "installed");
+  const record = JSON.parse(fs.readFileSync(path.join(path.dirname(game.dll), "build.json"), "utf8"));
+  assert.equal(record.ue4ss_asset, INSTALL_ASSET, "the deployed part records the UE4SS build it was made for");
+  return { game, context };
+}
+
+test("a deployed native part that matches is kept when the download fails or toolInstall is missing", async () => {
+  const offline = await deployedNative("native-keep-offline");
+  const down = await executeOperation("unreal.deploy_dumper", { gameDir: offline.game.gameDir }, { ...offline.context, fetchImpl: async () => ({ ok: false, status: 503 }) });
+  assert.equal(down.data.native.native, "unavailable");
+  assert.equal(down.data.native.keptExisting, true);
+  assert.equal(fs.readFileSync(offline.game.dll, "utf8"), "NEW!");
+
+  const gated = await deployedNative("native-keep-gated");
+  const authorizations = gated.context.authorizations.filter((entry) => entry.effect !== "toolInstall");
+  const denied = await executeOperation("unreal.deploy_dumper", { gameDir: gated.game.gameDir }, { ...gated.context, authorizations });
+  assert.equal(denied.data.native.native, "not_authorized");
+  assert.equal(denied.data.native.keptExisting, true);
+  assert.equal(fs.readFileSync(gated.game.dll, "utf8"), "NEW!");
+});
+
+test("a deployed native part made for another UE4SS build is removed even when the download fails", async () => {
+  const { game, context } = await deployedNative("native-drop-offline");
+  fs.writeFileSync(
+    path.join(game.ue4ss, "gmf-install.json"),
+    JSON.stringify({ schema: "gmf.ue4ss_install/1", asset: OTHER_ASSET, digest: null, installed_at: "2026-11-13T00:00:00Z" }),
+  );
+  const down = await executeOperation("unreal.deploy_dumper", { gameDir: game.gameDir }, { ...context, fetchImpl: async () => ({ ok: false, status: 503 }) });
+  assert.equal(down.data.native.native, "unavailable");
+  assert.equal(down.data.native.keptExisting, undefined);
+  assert.equal(fs.existsSync(game.dll), false, "a part built for another UE4SS build can crash the game");
+  assert.ok(down.data.backup.some((item) => item.target.endsWith("main.dll")));
+});

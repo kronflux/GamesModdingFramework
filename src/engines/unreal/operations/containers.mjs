@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { evidence } from "../../../core/evidence.mjs";
-import { gmfError, isDirectory, requireTool, resolveGameDirInput, runResolvedTool, ensureInsideWorkspace } from "./shared.mjs";
+import { gmfError, isDirectory, requireTool, resolveGameDirInput, runResolvedTool, ensureInsideWorkspace, walkFiles } from "./shared.mjs";
 import { aesArgs, requireKeyIfEncrypted, resolveAesKey } from "./encryption.mjs";
 
 export const CONTAINER_KINDS = ["ini", "locres", "uplugin", "uproject"];
@@ -25,6 +25,8 @@ function unsafeReason(entry, outDir) {
   if (entry.includes("\0")) return "contains a NUL character";
   if (entry.startsWith("/") || entry.startsWith("\\") || /^[A-Za-z]:/.test(entry)) return "is an absolute path";
   if (entry.split(/[\\/]/).includes("..")) return "contains a '..' segment";
+  // repak reads an include path as a glob pattern, so such a name would select other entries.
+  if (/[[\]*?{}!]/.test(entry)) return "name has glob characters";
   const relative = path.relative(outDir, path.resolve(outDir, entry));
   if (relative === "" || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
     return "resolves outside the output folder";
@@ -145,6 +147,14 @@ export const readContainersOperation = {
         }
         for (const entry of wanted) {
           if (fs.existsSync(path.join(outDir, entry))) kept[kindOf(entry)] += 1;
+        }
+        // Only requested files may stay: anything else a pattern or the pak itself produced is removed.
+        const requested = new Set(wanted.map((entry) => entry.split(/[\\/]/).join("/").toLowerCase()));
+        for (const file of walkFiles(outDir)) {
+          const relative = path.relative(outDir, file).split(path.sep).join("/");
+          if (requested.has(relative.toLowerCase())) continue;
+          fs.rmSync(file, { force: true });
+          refused.push({ pak: name, entry: relative, reason: "not requested" });
         }
       }
       summary.push({ name, kept });

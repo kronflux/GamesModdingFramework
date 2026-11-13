@@ -108,26 +108,54 @@ export function runProcess(cmd, args = [], options = {}) {
   });
 }
 
+function execError(program, detail) {
+  const error = new Error(`GMF-E-EXEC-001: ${program} could not be started: ${detail}`);
+  error.code = "GMF-E-EXEC-001";
+  error.remediation = `Check that ${program} exists and can be run.`;
+  return error;
+}
+
 // Starts a process that outlives this one. No handle is kept, so it is never stopped from here.
+// Resolves with { pid } once the child has started; rejects with GMF-E-EXEC-001 when it cannot start.
 export function launchDetached(cmd, args = [], options = {}) {
   const spawnImpl = options.spawnImpl || spawn;
-  const child = spawnImpl(cmd, args, {
-    cwd: options.cwd,
-    detached: true,
-    stdio: "ignore",
-    windowsHide: false,
+  return new Promise((resolve, reject) => {
+    let child;
+    try {
+      child = spawnImpl(cmd, args, {
+        cwd: options.cwd,
+        detached: true,
+        stdio: "ignore",
+        windowsHide: false,
+        shell: false,
+      });
+    } catch (error) {
+      reject(execError(cmd, error.message));
+      return;
+    }
+    if (typeof child.once !== "function") {
+      child.unref?.();
+      resolve({ pid: child.pid });
+      return;
+    }
+    child.once("error", (error) => reject(execError(cmd, error.message)));
+    child.once("spawn", () => {
+      child.unref?.();
+      resolve({ pid: child.pid });
+    });
   });
-  child.unref();
-  return { pid: child.pid };
 }
 
 const OPENABLE_SCHEMES = new Set(["steam:", "http:", "https:"]);
+const URL_ALLOWED = /^[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]+$/;
 
-// Opens a URL with the platform handler. Only steam, http and https URLs are allowed.
-export function openUrl(url, options = {}) {
+// Opens a URL with the platform handler, never through a shell. Only steam, http and https URLs
+// made of URL characters are allowed.
+export async function openUrl(url, options = {}) {
+  const text = String(url);
   let scheme = "";
   try {
-    scheme = new URL(String(url)).protocol;
+    scheme = new URL(text).protocol;
   } catch {
     scheme = "";
   }
@@ -137,20 +165,26 @@ export function openUrl(url, options = {}) {
     error.remediation = "Use a steam://, http:// or https:// URL.";
     throw error;
   }
+  if (!URL_ALLOWED.test(text)) {
+    const error = new Error("GMF-E-PLAN-001: refusing to open a URL with spaces, control characters or characters outside the URL character set");
+    error.code = "GMF-E-PLAN-001";
+    error.remediation = "Percent-encode the URL.";
+    throw error;
+  }
   const platform = options.platform || process.platform;
   let command;
   let args;
   if (platform === "win32") {
-    command = "cmd";
-    args = ["/c", "start", "", String(url)];
+    command = "rundll32.exe";
+    args = ["url.dll,FileProtocolHandler", text];
   } else if (platform === "darwin") {
     command = "open";
-    args = [String(url)];
+    args = [text];
   } else {
     command = "xdg-open";
-    args = [String(url)];
+    args = [text];
   }
-  launchDetached(command, args, { spawnImpl: options.spawnImpl });
+  await launchDetached(command, args, { spawnImpl: options.spawnImpl });
   return { command, args };
 }
 
@@ -160,16 +194,29 @@ export async function isExecutableRunning(exePath, options = {}) {
   const runImpl = options.runImpl || runProcess;
   if (platform === "linux") {
     const procDir = options.procDir || "/proc";
+    const procFs = options.procFs || fs;
     const wanted = path.posix.normalize(String(exePath));
+    const segments = (value) => String(value).replace(/\\/g, "/").toLowerCase().split("/").filter(Boolean);
+    const wantedTail = segments(exePath).slice(-2);
     let entries = [];
     try {
-      entries = fs.readdirSync(procDir).filter((name) => /^\d+$/.test(name));
+      entries = procFs.readdirSync(procDir).filter((name) => /^\d+$/.test(name));
     } catch {
       return false;
     }
     for (const pid of entries) {
       try {
-        if (path.posix.normalize(fs.readlinkSync(`${procDir}/${pid}/exe`)) === wanted) return true;
+        if (path.posix.normalize(procFs.readlinkSync(`${procDir}/${pid}/exe`)) === wanted) return true;
+      } catch {
+        // process exited or is not readable
+      }
+      // Under Proton the exe link is the wine preloader; the game path is in the arguments.
+      try {
+        const args = String(procFs.readFileSync(`${procDir}/${pid}/cmdline`, "utf8")).split("\0");
+        for (const arg of args) {
+          const tail = segments(arg).slice(-2);
+          if (wantedTail.length === 2 && tail.length === 2 && tail[0] === wantedTail[0] && tail[1] === wantedTail[1]) return true;
+        }
       } catch {
         // process exited or is not readable
       }

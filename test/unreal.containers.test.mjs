@@ -164,3 +164,30 @@ test("a game with no pak names the folder", async () => {
   assert.equal(result.ok, false);
   assert.ok(String(result.error?.message).includes(path.join(gameDir, "Content", "Paks")), result.error?.message);
 });
+
+test("an entry with glob characters is refused, and a file that was not requested is removed", async () => {
+  const gameDir = gameWith("game-glob", ["A.pak"]);
+  const workspace = workspaceAt("ws-glob");
+  const calls = [];
+  const base = fakeRepak({ "A.pak": ["sub/[x].ini", "sub/a*.locres", "Good/ok.ini"] }, calls);
+  // This unpack also writes a file nobody asked for, as a pattern match in the real tool could.
+  const runner = async (cmd, argv) => {
+    const result = await base(cmd, argv);
+    if (argv[1] === "unpack") {
+      const out = argv[argv.indexOf("-o") + 1];
+      write(path.join(out, "sub", "x.ini"), "NOT REQUESTED");
+    }
+    return result;
+  };
+  const result = await executeOperation("unreal.read_containers", { gameDir }, { workspace, toolCacheDir: toolCache("glob"), runProcess: runner });
+  assert.equal(result.ok, true, result.error?.message);
+  const unpack = calls.find((call) => call.args[0] === "unpack").args;
+  assert.deepEqual(unpack.flatMap((arg, i) => (arg === "-i" ? [unpack[i + 1]] : [])), ["Good/ok.ini"]);
+  const reasons = Object.fromEntries(result.data.refused.map((item) => [item.entry, item.reason]));
+  assert.equal(reasons["sub/[x].ini"], "name has glob characters");
+  assert.equal(reasons["sub/a*.locres"], "name has glob characters");
+  assert.equal(reasons["sub/x.ini"], "not requested");
+  const out = path.join(workspace.root, "extracted", "unreal", "text", "A");
+  assert.equal(fs.existsSync(path.join(out, "sub", "x.ini")), false);
+  assert.ok(fs.existsSync(path.join(out, "Good", "ok.ini")));
+});
