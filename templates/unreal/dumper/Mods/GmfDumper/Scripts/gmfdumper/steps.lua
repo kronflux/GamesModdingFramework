@@ -15,7 +15,7 @@ Steps.ORDER = {
     "load_assets",
     "objects", "usmap", "jmap", "tmap", "cxx", "uht", "luatypes", "bpsdk",
     "reflection", "names", "scripts", "hooks", "assets",
-    "datatables", "data_assets", "config_objects", "class_defaults", "widgets", "gameplay_tags",
+    "datatables", "data_assets", "asset_values", "config_objects", "class_defaults", "widgets", "gameplay_tags",
     "levels_loaded",
     "unload_assets",
     "containers", "environment",
@@ -359,6 +359,8 @@ function Steps.build(env)
     steps.world_values = native_step("world_values", "World", "actor_values.jsonl", "DumpWorldValues")
     steps.datatables = native_step("datatables", "DataTables", nil, "DumpDataTables", true)
     steps.data_assets = native_step("data_assets", "DataAssets", nil, "DumpDataAssets")
+    steps.asset_values = native_step("asset_values", "Assets", "asset_values.jsonl", "DumpAssetValues")
+    steps.asset_values.profiles = FULL_ONLY
     steps.config_objects = native_step("config_objects", "Config", "config_objects.jsonl", "DumpConfigObjects")
     steps.class_defaults = native_step("class_defaults", "Reflection", "class_defaults.jsonl", "DumpClassDefaults")
     steps.class_defaults.profiles = FULL_ONLY

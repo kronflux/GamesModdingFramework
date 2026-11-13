@@ -116,6 +116,7 @@ local function world(t, options)
             end,
             DumpConfigObjects = writer("DumpConfigObjects"),
             DumpClassDefaults = writer("DumpClassDefaults"),
+            DumpAssetValues = writer("DumpAssetValues"),
             DumpWidgetTrees = writer("DumpWidgetTrees"),
             DumpGameplayTags = writer("DumpGameplayTags"),
             ListMaps = function() return "/Game/Maps/Lobby\n/Game/Maps/Menu\n" end,
@@ -190,14 +191,15 @@ end
 
 function tests.step_list_matches_the_spec(t)
     local steps = Steps.build({ api = {}, native = nil, config = {} })
-    t:eq(#steps, 29)
+    t:eq(#steps, 30)
     t:eq(steps[1].id, "world_actors")
     t:eq(steps[6].id, "load_assets")
-    t:eq(steps[23].id, "class_defaults")
-    t:eq(steps[26].id, "levels_loaded")
-    t:ok(steps[26].hold, "maps in memory are written before the game gets a tick")
-    t:eq(steps[27].id, "unload_assets")
-    t:eq(steps[29].id, "environment")
+    t:eq(steps[22].id, "asset_values")
+    t:eq(steps[24].id, "class_defaults")
+    t:eq(steps[27].id, "levels_loaded")
+    t:ok(steps[27].hold, "maps in memory are written before the game gets a tick")
+    t:eq(steps[28].id, "unload_assets")
+    t:eq(steps[30].id, "environment")
     local seen = {}
     for _, step in ipairs(steps) do
         t:no(seen[step.id], "step id used twice: " .. step.id)
@@ -214,8 +216,8 @@ function tests.full_profile_without_native(t)
         t:eq(w.status(id), "ok", id .. ": " .. tostring(w.step(id).error or w.step(id).reason))
     end
     for _, id in ipairs({ "world_json", "runtime", "world_values", "load_assets", "tmap", "reflection", "names",
-        "scripts", "assets", "datatables", "data_assets", "config_objects", "class_defaults", "widgets", "gameplay_tags",
-        "unload_assets" }) do
+        "scripts", "assets", "datatables", "data_assets", "asset_values", "config_objects", "class_defaults", "widgets",
+        "gameplay_tags", "unload_assets" }) do
         t:eq(w.status(id), "skipped", id)
         t:eq(w.step(id).reason, "native unavailable", id)
     end
@@ -259,6 +261,7 @@ function tests.full_profile_with_native(t)
     t:eq(w.step("runtime").files[1].path, "World/runtime.json")
     t:eq(w.step("config_objects").files[1].path, "Config/config_objects.jsonl")
     t:eq(w.step("class_defaults").files[1].path, "Reflection/class_defaults.jsonl")
+    t:eq(w.step("asset_values").files[1].path, "Assets/asset_values.jsonl")
     t:eq(w.step("widgets").files[1].path, "UI/widget_trees.json")
     t:eq(w.step("gameplay_tags").files[1].path, "Names/gameplay_tags.txt")
     t:eq(w.step("cxx").files[1].dir, true, "folder outputs are one entry")

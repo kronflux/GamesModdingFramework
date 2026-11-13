@@ -14,3 +14,4 @@ backups/
 !test/fixtures/**/*.log
 .claude/worktrees/
 *.tgz
+dist/

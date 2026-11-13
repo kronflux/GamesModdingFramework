@@ -21,6 +21,7 @@ App.NATIVE_NAMES = {
     "DumpObjects", "GenerateCXX", "GenerateLuaTypes", "GenerateTMapOverrides", "GenerateBPSDK",
     "DumpReflection", "DumpNames", "DumpScripts", "DumpHooks", "DumpAssetRegistry", "DumpActors",
     "DumpRuntime", "DumpWorldValues", "DumpDataTables", "DumpDataAssets", "DumpConfigObjects", "DumpClassDefaults",
+    "DumpAssetValues",
     "DumpWidgetTrees", "DumpGameplayTags", "ExeInfo", "EndProcess", "ListMaps", "DumpLevel", "ListLoadedMaps",
 }
 

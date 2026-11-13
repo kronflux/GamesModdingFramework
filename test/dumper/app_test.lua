@@ -142,7 +142,7 @@ function tests.list_prints_all_steps(t)
     local w = install(t)
     local replies = {}
     w.app.handle_command({ "list" }, function(m) replies[#replies + 1] = m end)
-    t:eq(#replies, 30, "one header line and 29 steps")
+    t:eq(#replies, 31, "one header line and 30 steps")
     t:ok(table.concat(replies, "\n"):find("tmap  (needs the native DLL)", 1, true))
     t:eq(w.latest(), nil, "list does not start a run")
 end
@@ -215,7 +215,7 @@ function tests.every_step_of_a_default_run_ends_ok_or_skipped(t)
     local w = install(t)
     w.handlers.gmfdump("gmfdump", {}, nil)
     local data = manifest_of(t, w)
-    t:eq(#data.steps, 29)
+    t:eq(#data.steps, 30)
     for _, step in ipairs(data.steps) do
         t:ok(step.status == "ok" or step.status == "skipped", step.id .. " is " .. step.status)
     end
