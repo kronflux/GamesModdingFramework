@@ -455,8 +455,15 @@ export class Docs {
 
   missingReason(section) {
     for (const step of getOr(this.manifest, "steps", [])) {
-      if (section.steps.includes(get(step, "id")) && get(step, "status") === "skipped") {
-        return truthy(get(step, "reason")) ? pyStr(get(step, "reason")) : "skipped";
+      if (!section.steps.includes(get(step, "id"))) continue;
+      if (get(step, "status") === "skipped") {
+        const reason = truthy(get(step, "reason")) ? pyStr(get(step, "reason")) : "skipped";
+        // The mod's own words for a missing DLL, said so a reader knows what to repair.
+        return reason === "native unavailable" ? "the native part did not load" : reason;
+      }
+      if (get(step, "status") === "failed") {
+        const error = truthy(get(step, "error")) ? pyStr(get(step, "error")).split(/\r?\n/)[0].slice(0, 200) : "no error recorded";
+        return `failed: ${error}`;
       }
     }
     return "not collected";

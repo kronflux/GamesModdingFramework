@@ -417,7 +417,7 @@ test("sections report their pages, and a section without input is missing with t
     steps: [{ id: "scripts", status: "skipped", reason: "native unavailable" }] });
   const built = await buildDocs(bare, join(temp, "bare-out"));
   const scripts = built.sections.find((s) => s.name === "scripts");
-  assert.deepEqual(scripts, { name: "scripts", pages: 0, missing: "native unavailable" });
+  assert.deepEqual(scripts, { name: "scripts", pages: 0, missing: "the native part did not load" });
   assert.equal(built.sections.find((s) => s.name === "tags").missing, "not collected");
 });
 

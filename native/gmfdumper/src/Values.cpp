@@ -294,6 +294,9 @@ namespace GmfDumper
                 STR("/Script/Engine.Skeleton"),          STR("/Script/Engine.MaterialInterface"), STR("/Script/Engine.MaterialFunctionInterface"),
                 STR("/Script/Engine.Font"),              STR("/Script/Engine.FontFace"),        STR("/Script/Engine.PhysicsAsset"),
                 STR("/Script/Engine.Actor"),             STR("/Script/Engine.ActorComponent"),
+                // Baked or generated content: large, and not something a mod reads as settings.
+                STR("/Script/Engine.MapBuildDataRegistry"), STR("/Script/LevelSequence.LevelSequence"), STR("/Script/MovieScene.MovieSceneSequence"),
+                STR("/Script/Niagara.NiagaraSystem"),    STR("/Script/Niagara.NiagaraEmitter"), STR("/Script/Niagara.NiagaraScript"),
         };
         std::vector<UClass*> excluded{};
         for (const TCHAR* path : excluded_paths)

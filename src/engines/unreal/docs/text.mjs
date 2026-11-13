@@ -563,7 +563,9 @@ export function leaf(path) {
 
 /** Text made safe for a markdown table cell. */
 export function md(value) {
-  const text = pyStr(value).replaceAll("|", "\\|").replaceAll("\r", " ").replaceAll("\n", " ");
+  // "](" is broken up so that game text which looks like a markdown link is not read as one
+  // (the Python builder did not do this; a value with "](" is the only place the output differs).
+  const text = pyStr(value).replaceAll("|", "\\|").replaceAll("\r", " ").replaceAll("\n", " ").replaceAll("](", "]\\(");
   return cpLen(text) <= MAX_CELL ? text : cpSlice(text, MAX_CELL - 1) + "…";
 }
 

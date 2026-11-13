@@ -24,7 +24,8 @@ const HEADER = JSON.stringify({ schema: "gmfdumper.values/1", kind: "asset value
 function makeWorkspace(t, { native = true } = {}) {
   const root = tempDir(t, "gmf-docs-");
   const run = path.join(root, "dumps", "unreal", "runs", "Demo-5.6-20261113-000000");
-  const skipped = (id) => ({ id, status: "skipped", reason: "the native part did not load", files: [] });
+  // The reason the mod really writes when its native part is absent (runner.lua, skip_reason).
+  const skipped = (id) => ({ id, status: "skipped", reason: "native unavailable", files: [] });
   const ok = (id) => ({ id, status: "ok", files: [] });
   write(path.join(run, "manifest.json"), {
     schema: "gmfdumper.manifest/1", game: "Demo", engine_version: "5.6", finished: "2026-11-13T00:00:00",
@@ -103,6 +104,16 @@ test("AC-12: a run without the native part still yields docs, and README lists w
   assert.match(readme, /- containers: containers not read; run unreal\.read_containers/);
   const missing = Object.fromEntries(result.data.missing.map((entry) => [entry.name, entry.reason]));
   assert.equal(missing.reflection, "the native part did not load");
+});
+
+test("a section whose step failed says so with the error", async (t) => {
+  const ws = makeWorkspace(t, { native: false });
+  const manifestPath = path.join(ws.run, "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  manifest.steps = [{ id: "scripts", status: "failed", error: "access violation at 0x10\nstack: ...", files: [] }];
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  const built = await buildDocs(ws.run, path.join(ws.root, "out-failed"));
+  assert.equal(built.sections.find((s) => s.name === "scripts").missing, "failed: access violation at 0x10");
 });
 
 test("asset values become one page per asset that has values, linked from the search index", async (t) => {

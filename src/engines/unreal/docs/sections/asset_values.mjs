@@ -5,6 +5,20 @@
 import { get, keys, leaf, or, pyStr, readable, size } from "../text.mjs";
 import { valueLines } from "./data.mjs";
 
+// The file for an asset page. Two assets in one folder can have the same object name in
+// different packages (/Game/A/Foo.Foo and /Game/A/Bar.Foo); the second is named after its
+// package as well, so neither replaces the other.
+function pageFile(docs, path) {
+  const file = docs.fileFor("asset_values", path);
+  if (!docs.files.has(file)) return file;
+  const dot = path.indexOf(".");
+  const packageLeaf = (dot < 0 ? path : path.slice(0, dot)).split("/").pop().replace(/[<>:"|?*\\]/g, "_");
+  const base = `${file.slice(0, -3)}.${packageLeaf}`;
+  let candidate = `${base}.md`;
+  for (let n = 2; docs.files.has(candidate); n += 1) candidate = `${base}~${n}.md`;
+  return candidate;
+}
+
 /** The asset values section: asset_values/<content path>.md. */
 export function write(docs) {
   docs.lines("Assets/asset_values.jsonl", (item) => {
@@ -13,13 +27,13 @@ export function write(docs) {
     const values = or(get(item, "values"), {});
     // An asset that already has a page (a data asset, a table) keeps that page.
     if (!path || docs.docOf.has(path) || !size(values)) return;
-    const file = docs.fileFor("asset_values", path);
+    const file = pageFile(docs, path);
     docs.docOf.set(path, file);
     const name = leaf(path);
-    const className = leaf(classPath);
-    const body = [`# ${name}\n`, `Asset \`${pyStr(path)}\` of class ${docs.link(classPath, file)}.\n`, "## Values\n", ...valueLines(values)];
+    const ofClass = classPath ? `of class ${docs.link(classPath, file)}` : "of an unknown class";
+    const body = [`# ${name}\n`, `Asset \`${pyStr(path)}\` ${ofClass}.\n`, "## Values\n", ...valueLines(values)];
     const names = keys(values).map(readable);
-    docs.add(file, "asset_values", name, path, `asset of class ${className}, ${names.length} values`, body.join("\n"), names,
-      { class: classPath ?? null });
+    const summary = classPath ? `asset of class ${leaf(classPath)}, ${names.length} values` : `asset of an unknown class, ${names.length} values`;
+    docs.add(file, "asset_values", name, path, summary, body.join("\n"), names, { class: classPath ?? null });
   });
 }

@@ -24,10 +24,27 @@ function walk(dir, found = []) {
   return found;
 }
 
+// One table cell. A backslash is doubled first, so the escapes added after it stay escapes; a
+// line break is shown as the two characters \n; "](" is broken up so game text that looks like a
+// markdown link is not one.
 function cell(value) {
   return String(value ?? "")
+    .replace(/\\/g, "\\\\")
     .replace(/\r\n|\n|\r/g, "\\n")
-    .replace(/\|/g, "\\|");
+    .replace(/\|/g, "\\|")
+    .replace(/\]\(/g, "]\\(");
+}
+
+// Gives each page its own file: a name already used in a folder, compared without regard to
+// case because Windows does not tell them apart, gets ~2, ~3 and so on.
+function uniqueNames() {
+  const taken = new Set();
+  return (folder, base) => {
+    let name = base;
+    for (let n = 2; taken.has(`${folder}/${name}`.toLowerCase()); n += 1) name = `${base}~${n}`;
+    taken.add(`${folder}/${name}`.toLowerCase());
+    return name;
+  };
 }
 
 function frontMatter(kind, name, source) {
@@ -56,7 +73,7 @@ function readJson(file) {
 function iniPage(name, rel, pak, parsed) {
   const lines = [`# ${rel}`, "", `Pak: \`${pak}\`.`, ""];
   for (const section of parsed.sections) {
-    lines.push(`## [${section.name}]`, "", "| Key | Op | Value |", "| --- | --- | --- |");
+    lines.push(`## [${section.name}]`, "", "| Key | Op | Value |", "|---|---|---|");
     for (const entry of section.entries) lines.push(`| ${cell(entry.key)} | ${cell(entry.op)} | ${cell(entry.value)} |`);
     lines.push("");
   }
@@ -70,7 +87,7 @@ function localePage(culture, namespace, sources, entries) {
     `Sources: ${sources.map((source) => `\`${source}\``).join(", ")}.`,
     "",
     "| Key | Text |",
-    "| --- | --- |",
+    "|---|---|",
   ];
   for (const [key, text] of entries) lines.push(`| ${cell(key)} | ${cell(text)} |`);
   lines.push("");
@@ -88,7 +105,7 @@ function pluginsPage(plugins, projects) {
     lines.push(`## Project \`${project.rel}\``, "", `- EngineAssociation: ${project.engine ? `\`${project.engine}\`` : "(none)"}`);
     lines.push(`- Enabled plugins: ${project.enabled.length > 0 ? project.enabled.map((name) => `\`${name}\``).join(", ") : "(none)"}`, "");
   }
-  const header = ["| Name | Version | Category | Enabled by default | Modules | Description | Path |", "| --- | --- | --- | --- | --- | --- | --- |"];
+  const header = ["| Name | Version | Category | Enabled by default | Modules | Description | Path |", "|---|---|---|---|---|---|---|"];
   const sorted = [...plugins].sort((a, b) => byLowerName(a.name, b.name));
   const game = sorted.filter((plugin) => !plugin.rel.startsWith("Engine/"));
   const engine = sorted.filter((plugin) => plugin.rel.startsWith("Engine/"));
@@ -129,9 +146,8 @@ export function containerPages(textDir, { engineLocalization = false } = {}) {
       const lower = rel.toLowerCase();
       if (lower.endsWith(".ini")) {
         counts.ini += 1;
-        const name = rel.slice(0, -4).split("/").join("__").replace(/[^A-Za-z0-9._ -]/g, "_");
         // A later pak, in name order, replaces an earlier pak's file of the same path.
-        iniByName.set(name, { rel, pak, file });
+        iniByName.set(rel.toLowerCase(), { rel, pak, file });
       } else if (lower.endsWith(".locres")) {
         if (!engineLocalization && lower.startsWith("engine/")) {
           counts.engineLocres += 1;
@@ -147,9 +163,9 @@ export function containerPages(textDir, { engineLocalization = false } = {}) {
         }
         const culture = rel.includes("/") ? rel.split("/").slice(-2, -1)[0] : "_";
         for (const namespace of parsed.namespaces) {
-          const shown = namespace.name === "" ? "_default" : safeName(namespace.name);
-          const id = `${culture}\0${shown}`;
-          if (!locales.has(id)) locales.set(id, { culture, namespace: shown, sources: [], entries: new Map() });
+          // Keyed by the real names; file names are made safe and unique when the pages are written.
+          const id = `${culture}\0${namespace.name}`;
+          if (!locales.has(id)) locales.set(id, { culture, namespace: namespace.name, sources: [], entries: new Map() });
           const target = locales.get(id);
           if (!target.sources.includes(rel)) target.sources.push(rel);
           for (const entry of namespace.entries) target.entries.set(entry.key, entry.text);
@@ -180,17 +196,23 @@ export function containerPages(textDir, { engineLocalization = false } = {}) {
     }
   }
 
-  for (const name of [...iniByName.keys()].sort(byLowerName)) {
-    const { rel, pak, file } = iniByName.get(name);
+  const unique = uniqueNames();
+  for (const key of [...iniByName.keys()].sort(byLowerName)) {
+    const { rel, pak, file } = iniByName.get(key);
+    const name = unique("settings", rel.slice(0, -4).split("/").join("__").replace(/[^A-Za-z0-9._ -]/g, "_"));
     const parsed = parseIni(decodeText(fs.readFileSync(file)));
     pages.push({ file: `settings/${name}.md`, text: iniPage(name, rel, pak, parsed), kind: "settings", name });
   }
+  const cultureFolder = new Map();
   for (const target of [...locales.values()].sort((a, b) => byLowerName(a.culture, b.culture) || byLowerName(a.namespace, b.namespace))) {
+    if (!cultureFolder.has(target.culture)) cultureFolder.set(target.culture, unique("localization", safeName(target.culture)));
+    const folder = `localization/${cultureFolder.get(target.culture)}`;
+    const shown = target.namespace === "" ? "(no namespace)" : target.namespace;
     pages.push({
-      file: `localization/${safeName(target.culture)}/${target.namespace}.md`,
-      text: localePage(target.culture, target.namespace, target.sources, target.entries),
+      file: `${folder}/${unique(folder, target.namespace === "" ? "_default" : safeName(target.namespace))}.md`,
+      text: localePage(target.culture, shown, target.sources, target.entries),
       kind: "localization",
-      name: `${target.culture}/${target.namespace}`,
+      name: `${target.culture}/${shown}`,
     });
   }
   if (pluginsByRel.size > 0 || projectsByRel.size > 0) {
