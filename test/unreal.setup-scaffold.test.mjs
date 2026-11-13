@@ -455,3 +455,45 @@ test("setup refuses a channel other than the one the catalog installs, before wr
   assert.equal(named.ok, true, named.error?.message);
   assert.equal(named.data.channel, "experimental-latest");
 });
+
+test("setup writes gmf-install.json naming the asset", async () => {
+  const { readUe4ssInstall } = await import("../src/engines/unreal/operations/setup_ue4ss.mjs");
+  const gameDir = copyFixture("no-ue4ss", path.join(root, "game-record"));
+  const workspace = workspaceAt("ws-record");
+  const context = contextFor(workspace);
+  const dll = path.join(fixtures, "ue4ss-tool", "UE4SS.dll");
+  const hash = (await import("node:crypto")).createHash("sha256").update(fs.readFileSync(dll)).digest("hex");
+  context.catalog.tools[0].verify = { kind: "sha256", value: hash };
+  context.authorizations = [
+    { effect: "toolInstall", source: "test: install" },
+    { effect: "gameWrite", source: "test: install" },
+  ];
+  const result = await executeOperation("unreal.setup_ue4ss", { gameDir }, context);
+  assert.equal(result.ok, true, result.error?.message);
+  const file = path.join(result.data.path, "gmf-install.json");
+  assert.ok(fs.existsSync(file), "gmf-install.json sits in the ue4ss folder");
+  const record = JSON.parse(fs.readFileSync(file, "utf8"));
+  assert.equal(record.schema, "gmf.ue4ss_install/1");
+  assert.equal(record.asset, "fake-3.0.zip");
+  assert.equal(record.digest, `sha256:${hash}`);
+  assert.ok(!Number.isNaN(Date.parse(record.installed_at)));
+  assert.deepEqual(readUe4ssInstall(result.data.path), record);
+
+  const noDigest = copyFixture("no-ue4ss", path.join(root, "game-record-nodigest"));
+  const plain = contextFor(workspaceAt("ws-record-nodigest"));
+  plain.authorizations = context.authorizations;
+  const second = await executeOperation("unreal.setup_ue4ss", { gameDir: noDigest }, plain);
+  assert.equal(second.ok, true, second.error?.message);
+  assert.equal(readUe4ssInstall(second.data.path).digest, null, "a size-only verification has no digest");
+});
+
+test("readUe4ssInstall returns null without the file, on bad JSON and on a wrong schema", async () => {
+  const { readUe4ssInstall } = await import("../src/engines/unreal/operations/setup_ue4ss.mjs");
+  const dir = path.join(root, "record-read");
+  fs.mkdirSync(dir, { recursive: true });
+  assert.equal(readUe4ssInstall(dir), null);
+  fs.writeFileSync(path.join(dir, "gmf-install.json"), "{not json");
+  assert.equal(readUe4ssInstall(dir), null);
+  fs.writeFileSync(path.join(dir, "gmf-install.json"), JSON.stringify({ schema: "other/1", asset: "a.zip" }));
+  assert.equal(readUe4ssInstall(dir), null);
+});

@@ -21,6 +21,29 @@ export const EFFECTS = ["read", "network", "toolInstall", "gameWrite"];
 // The catalog pins the ue4ss tool to this release tag, so it is the only channel that can be installed.
 const UE4SS_CHANNEL = "experimental-latest";
 
+const INSTALL_RECORD = "gmf-install.json";
+const INSTALL_SCHEMA = "gmf.ue4ss_install/1";
+
+// The record of the release installed into a UE4SS folder, or null when it is missing, unreadable or not ours.
+export function readUe4ssInstall(ue4ssDir) {
+  try {
+    const record = JSON.parse(fs.readFileSync(path.join(ue4ssDir, INSTALL_RECORD), "utf8"));
+    return record && record.schema === INSTALL_SCHEMA ? record : null;
+  } catch {
+    return null;
+  }
+}
+
+// The registry reports a published digest as "sha256:<hex>" and a pinned or recorded one as bare hex.
+function digestOf(verification) {
+  const value = typeof verification?.value === "string" ? verification.value : "";
+  if (/^sha256:[0-9a-f]{64}$/i.test(value)) return value.toLowerCase();
+  if (["sha256", "recorded-sha256"].includes(verification?.kind) && /^[0-9a-f]{64}$/i.test(value)) {
+    return `sha256:${value.toLowerCase()}`;
+  }
+  return null;
+}
+
 export function authorizationContext(context) {
   return { plan: context?.plan || activePlan(context || {}), overrides: authorizationOverrides(context || {}) };
 }
@@ -131,6 +154,21 @@ export const setupUe4ssOperation = {
       applyUe4ssProfile(context, targetRoot, "development");
       settingsProfile = "development";
     }
+
+    fs.writeFileSync(
+      path.join(targetRoot, INSTALL_RECORD),
+      `${JSON.stringify(
+        {
+          schema: INSTALL_SCHEMA,
+          asset: `${installed.version}.zip`,
+          digest: digestOf(installed.verification),
+          installed_at: new Date().toISOString(),
+        },
+        null,
+        2,
+      )}
+`,
+    );
 
     const dllTarget = layout === "v3" ? path.join(binaries, path.basename(installed.path)) : path.join(targetRoot, path.basename(installed.path));
     if (!fs.existsSync(dllTarget) && fs.existsSync(installed.path)) {
