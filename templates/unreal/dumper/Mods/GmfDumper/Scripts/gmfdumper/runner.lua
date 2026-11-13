@@ -21,6 +21,8 @@ function Runner.new(options)
     self.make_manifest = options.make_manifest
     self.make_context = options.make_context
     self.on_finish = options.on_finish
+    self.on_stopped = options.on_stopped
+    self.on_start_failed = options.on_start_failed
     self.has_native = options.has_native ~= false
     self.running = false
     return self
@@ -112,7 +114,15 @@ function Runner:start(request)
     end
     local manifest, manifest_err = self.make_manifest(run_dir, header, ids)
     if not manifest then
-        return nil, tostring(manifest_err or "could not write the manifest")
+        local reason = tostring(manifest_err or "could not write the manifest")
+        -- The run folder exists, so whoever waits for this run is told that it ended.
+        if self.on_start_failed then
+            local told, problem = pcall(self.on_start_failed, run_dir, reason, request)
+            if not told then
+                self.log("the start-failed handler failed: " .. tostring(problem))
+            end
+        end
+        return nil, reason
     end
 
     local ctx = self.make_context(run_dir, request) or {}
@@ -125,12 +135,20 @@ function Runner:start(request)
 
     -- Scheduling can fail, for example when UE4SS has no game-thread hook available. The
     -- run then stops where it is: the manifest keeps the remaining steps as "pending", and
-    -- the runner is free for the next command.
+    -- the runner is free for the next command. The stop handler is told, so that it can
+    -- write the file that marks the end of the run.
     local function schedule(fn)
         local ok, err = pcall(self.schedule, fn)
         if not ok then
             self.running = false
-            self.log("run stopped: could not schedule the next step: " .. tostring(err))
+            local reason = "could not schedule the next step: " .. tostring(err)
+            self.log("run stopped: " .. reason)
+            if self.on_stopped then
+                local told, problem = pcall(self.on_stopped, ctx, manifest, reason)
+                if not told then
+                    self.log("the stop handler failed: " .. tostring(problem))
+                end
+            end
             return nil, tostring(err)
         end
         return true
@@ -153,7 +171,10 @@ function Runner:start(request)
                 self.log(string.format("run finished: %d ok, %d failed, %d skipped. Folder: %s",
                     counts.ok, counts.failed, counts.skipped, run_dir))
                 if self.on_finish then
-                    pcall(self.on_finish, ctx, manifest)
+                    local finished, problem = pcall(self.on_finish, ctx, manifest)
+                    if not finished then
+                        self.log("the end-of-run handler failed: " .. tostring(problem))
+                    end
                 end
                 return
             end

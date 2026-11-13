@@ -271,4 +271,48 @@ function tests.summary_is_logged_before_the_finish_callback(t)
     t:eq(table.concat(order, ","), "summary,callback")
 end
 
+function tests.a_run_that_cannot_go_on_tells_the_stop_handler_once(t)
+    local calls, stops = 0, {}
+    local runner, manifest = make(t, { ok_step("a"), ok_step("b") }, {
+        schedule = function(fn)
+            calls = calls + 1
+            if calls > 1 then
+                error("hook went away")
+            end
+            fn()
+        end,
+        on_stopped = function(ctx, m, reason) stops[#stops + 1] = { ctx = ctx, manifest = m, reason = reason } end,
+    })
+    t:ok(runner:start({ profile = "full" }))
+    t:eq(#stops, 1, "the stop handler ran once")
+    t:eq(stops[1].manifest, manifest())
+    t:ok(stops[1].reason:find("hook went away", 1, true), stops[1].reason)
+    t:ok(stops[1].ctx.run_dir, "the handler gets the run context")
+end
+
+function tests.a_manifest_that_cannot_be_written_tells_the_start_failed_handler(t)
+    local seen
+    local runner = make(t, { ok_step("a") }, {
+        make_manifest = function() return nil, "disk full" end,
+        on_start_failed = function(run_dir, reason) seen = { run_dir = run_dir, reason = reason } end,
+    })
+    local ok, err = runner:start({ profile = "full" })
+    t:no(ok)
+    t:ok(err:find("disk full", 1, true), err)
+    t:ok(seen and seen.run_dir, "the handler gets the run folder")
+    t:ok(seen.reason:find("disk full", 1, true))
+end
+
+function tests.an_error_in_the_finish_callback_is_logged(t)
+    local runner, _, log = make(t, { ok_step("a") }, {
+        on_finish = function() error("finish broke") end,
+    })
+    t:ok(runner:start({ profile = "full" }))
+    local found = false
+    for _, line in ipairs(log) do
+        found = found or (line:find("finish broke", 1, true) ~= nil)
+    end
+    t:ok(found, "the error text is in the log")
+end
+
 return tests

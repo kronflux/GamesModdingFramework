@@ -194,6 +194,21 @@ function App.install(options)
                 profile = request and not request.only and request.profile or nil,
             }
         end,
+        -- A run that ends early still leaves run_complete.json, so nothing waits for it in
+        -- vain. The game stays open: the run did not do what was asked.
+        on_stopped = function(ctx, manifest, reason)
+            pcall(manifest.write_run_complete, manifest, { native = native ~= nil, game_left_open = true, reason = reason })
+            app.restore_input()
+            app.run_log = nil
+        end,
+        on_start_failed = function(run_dir, reason, request)
+            pcall(Manifest.write_failed_run, fs, run_dir, {
+                profile = request and (request.only and "custom" or request.profile) or nil,
+                native = native ~= nil, reason = reason,
+            })
+            app.restore_input()
+            app.run_log = nil
+        end,
         on_finish = function(ctx, manifest)
             fs.write_atomic(output_root .. "\\latest.txt", ctx.run_dir .. "\n")
             local quitting = ctx.auto and config.auto_run.quit_when_done
@@ -211,10 +226,19 @@ function App.install(options)
             end
 
             local levels_run = nil
+            local wrapped_up = false
             local function wrap_up()
+                -- Runs once: a failure after the level dump or the tour has called it must not
+                -- write the end-of-run file or close the game a second time.
+                if wrapped_up then
+                    return
+                end
+                wrapped_up = true
                 app.touring = false
+                -- The maps the step levels_loaded wrote count too when no level dump followed.
+                local levels_source = levels_run or (ctx.state and ctx.state.levels)
                 local levels_ok, levels_total = 0, 0
-                for _, result in ipairs(levels_run and levels_run.results or {}) do
+                for _, result in ipairs(levels_source and levels_source.results or {}) do
                     levels_total = levels_total + 1
                     levels_ok = levels_ok + (result.status == "ok" and 1 or 0)
                 end

@@ -111,30 +111,53 @@ function Manifest:counts()
 end
 
 local COMPLETE_ORDER = {
-    "schema", "finished", "profile", "produced", "steps_ok", "steps_failed", "steps_skipped",
-    "levels_ok", "levels_total", "native", "game_left_open",
+    "schema", "finished", "profile", "produced", "steps_ok", "steps_failed", "steps_skipped", "steps_pending",
+    "levels_ok", "levels_total", "native", "game_left_open", "reason",
 }
+
+local function write_complete(fs, run_dir, data)
+    local text = json.encode(data, { indent = true, keyorder = COMPLETE_ORDER })
+    return fs.write_atomic(run_dir .. "\\run_complete.json", text .. "\n")
+end
+
+-- run_complete.json for a run that ended before it had a manifest. `info` has profile,
+-- native and reason.
+function Manifest.write_failed_run(fs, run_dir, info)
+    return write_complete(fs, run_dir, {
+        schema = Manifest.COMPLETE_SCHEMA,
+        finished = now(),
+        profile = info.profile or "custom",
+        produced = false,
+        steps_ok = 0, steps_failed = 0, steps_skipped = 0, steps_pending = 0,
+        levels_ok = 0, levels_total = 0,
+        native = info.native and true or false,
+        game_left_open = true,
+        reason = info.reason,
+    })
+end
 
 -- Writes run_complete.json, the last file of a run. A reader that finds it knows that
 -- every step, the level dump and the map tour have ended, whatever their result.
--- `info` has profile, levels_ok, levels_total, native and game_left_open.
+-- `info` has levels_ok, levels_total, native, game_left_open and, for a run that was stopped
+-- early, reason. The profile is the manifest's own: "full", "quick", or "custom" for a run of
+-- named steps. steps_pending counts steps that never ran.
 function Manifest:write_run_complete(info)
     local counts = self:counts()
-    local data = {
+    return write_complete(self.fs, self.run_dir, {
         schema = Manifest.COMPLETE_SCHEMA,
         finished = now(),
-        profile = info.profile or "steps",
+        profile = self.data.profile or info.profile or "custom",
         produced = counts.ok > 0,
         steps_ok = counts.ok,
         steps_failed = counts.failed,
         steps_skipped = counts.skipped,
+        steps_pending = counts.pending + counts.running,
         levels_ok = info.levels_ok or 0,
         levels_total = info.levels_total or 0,
         native = info.native and true or false,
         game_left_open = info.game_left_open and true or false,
-    }
-    local text = json.encode(data, { indent = true, keyorder = COMPLETE_ORDER })
-    return self.fs.write_atomic(self.run_dir .. "\\run_complete.json", text .. "\n")
+        reason = info.reason,
+    })
 end
 
 return Manifest

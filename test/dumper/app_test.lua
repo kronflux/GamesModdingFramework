@@ -130,6 +130,16 @@ function tests.step_names_run_only_those_steps(t)
     t:eq(ok, 2)
 end
 
+function tests.a_run_of_single_steps_is_named_custom_in_run_complete(t)
+    local w = install(t)
+    w.handlers.gmfdump("gmfdump", { "objects" }, nil)
+    local _, run_dir = manifest_of(t, w)
+    local data = json.decode(t.support.read(run_dir .. "\\run_complete.json") or "")
+    t:ok(data, "run_complete.json written")
+    t:eq(data.profile, "custom")
+    t:eq(data.steps_pending, 0)
+end
+
 function tests.unknown_word_is_reported_and_nothing_runs(t)
     local w = install(t)
     local replies = {}

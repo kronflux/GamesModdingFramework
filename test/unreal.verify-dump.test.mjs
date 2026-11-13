@@ -131,3 +131,12 @@ test("the operation picks the newest run by name, or a named run, and reports te
   const absolute = await verifyDumpOperation.handler({ run: path.join(runs, "Game-5.6-20261112-053156") }, context);
   assert.equal(absolute.data.pass, true);
 });
+
+test("a step that never ran is a problem", (t) => {
+  const root = tempDir(t, "gmf-verify-pending-");
+  makeRun(root, { edit: (parts) => parts.manifest.steps.push({ id: "scripts", status: "pending", files: [] }, { id: "names", status: "running", files: [] }) });
+  const result = verifyRun(root);
+  assert.equal(result.pass, false);
+  assert.ok(result.problems.includes("step scripts: did not run (pending)"));
+  assert.ok(result.problems.includes("step names: did not finish (running)"));
+});

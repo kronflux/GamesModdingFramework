@@ -52,13 +52,26 @@ function tests.run_that_produced_nothing_says_so(t)
     t:eq(data.game_left_open, true)
 end
 
-function tests.single_step_run_is_named_steps(t)
+function tests.profile_comes_from_the_manifest_and_pending_steps_are_counted(t)
     local dir = t.support.temp_dir("complete")
-    local m = Manifest.new(Fs.new(nil), dir, {}, { "a" })
+    local m = Manifest.new(Fs.new(nil), dir, { profile = "custom" }, { "a", "b" })
     m:set("a", { status = "ok" })
-    m:finish()
     m:write_run_complete({})
-    t:eq(complete(t, dir).profile, "steps")
+    local data = complete(t, dir)
+    t:eq(data.profile, "custom", "the same word manifest.json uses")
+    t:eq(data.steps_pending, 1)
+end
+
+function tests.a_run_that_could_not_start_still_leaves_run_complete(t)
+    local dir = t.support.temp_dir("complete")
+    t:ok(Manifest.write_failed_run(Fs.new(nil), dir, { profile = "full", native = true, reason = "disk full" }))
+    local data = complete(t, dir)
+    t:eq(data.schema, "gmfdumper.run_complete/1")
+    t:eq(data.produced, false)
+    t:eq(data.steps_ok, 0)
+    t:eq(data.native, true)
+    t:eq(data.game_left_open, true)
+    t:eq(data.reason, "disk full")
 end
 
 return tests

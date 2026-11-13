@@ -48,6 +48,14 @@ export function verifyRun(runDir) {
       problems.push(`step ${step.id}: failed: ${step.error ?? "no error recorded"}`);
       continue;
     }
+    if (step.status === "pending") {
+      problems.push(`step ${step.id}: did not run (pending)`);
+      continue;
+    }
+    if (step.status === "running") {
+      problems.push(`step ${step.id}: did not finish (running)`);
+      continue;
+    }
     if (step.status === "skipped" && !step.reason) {
       problems.push(`step ${step.id}: skipped with no reason`);
     }
