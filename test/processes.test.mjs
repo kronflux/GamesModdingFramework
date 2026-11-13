@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { runProcess, spawnOwned, stopOwned, withTimeout } from "../src/core/processes.mjs";
+import { isExecutableRunning, launchDetached, openUrl, runProcess, spawnOwned, stopOwned, withTimeout } from "../src/core/processes.mjs";
 
 test("runProcess captures stdout and the exit code", async () => {
   const result = await runProcess(process.execPath, ["-e", "console.log('ok')"]);
@@ -45,4 +45,56 @@ test("runProcess decodes multi-byte output as UTF-8 and reports a non-zero exit"
   assert.equal(result.code, 3);
   assert.equal(result.stdout, "éé");
   assert.equal(result.timedOut, false);
+});
+
+test("launchDetached spawns detached and unrefs", () => {
+  const calls = [];
+  let unrefs = 0;
+  const spawnImpl = (cmd, args, options) => {
+    calls.push({ cmd, args, options });
+    return { pid: 4321, unref: () => { unrefs += 1; } };
+  };
+  const result = launchDetached("C:\\x\\Game.exe", ["-a"], { cwd: "C:\\x", spawnImpl });
+  assert.deepEqual(result, { pid: 4321 });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].cmd, "C:\\x\\Game.exe");
+  assert.deepEqual(calls[0].args, ["-a"]);
+  assert.equal(calls[0].options.detached, true);
+  assert.equal(calls[0].options.stdio, "ignore");
+  assert.equal(calls[0].options.cwd, "C:\\x");
+  assert.equal(unrefs, 1);
+});
+
+test("openUrl picks the command per platform and refuses file: URLs", () => {
+  const calls = [];
+  const spawnImpl = (cmd, args) => {
+    calls.push([cmd, args]);
+    return { unref() {} };
+  };
+  assert.deepEqual(openUrl("steam://run/1", { platform: "win32", spawnImpl }), {
+    command: "cmd",
+    args: ["/c", "start", "", "steam://run/1"],
+  });
+  assert.deepEqual(openUrl("https://example.com/", { platform: "darwin", spawnImpl }), {
+    command: "open",
+    args: ["https://example.com/"],
+  });
+  assert.deepEqual(openUrl("http://example.com/", { platform: "linux", spawnImpl }), {
+    command: "xdg-open",
+    args: ["http://example.com/"],
+  });
+  assert.equal(calls.length, 3);
+  for (const url of ["file:///C:/Windows/notepad.exe", "javascript:alert(1)", "not a url"]) {
+    assert.throws(() => openUrl(url, { platform: "win32", spawnImpl }), (error) => error.code === "GMF-E-PLAN-001");
+  }
+  assert.equal(calls.length, 3);
+});
+
+test("isExecutableRunning matches the full path only, not the image name", async () => {
+  const other = async () => ({ code: 0, signal: null, stdout: "D:\\other\\Game.exe\r\n", stderr: "" });
+  assert.equal(await isExecutableRunning("C:\\x\\Game.exe", { platform: "win32", runImpl: other }), false);
+  const both = async () => ({ code: 0, signal: null, stdout: "D:\\other\\Game.exe\r\nc:\\X\\game.EXE\r\n", stderr: "" });
+  assert.equal(await isExecutableRunning("C:\\x\\Game.exe", { platform: "win32", runImpl: both }), true);
+  const none = async () => ({ code: 0, signal: null, stdout: "", stderr: "" });
+  assert.equal(await isExecutableRunning("C:\\x\\Game.exe", { platform: "win32", runImpl: none }), false);
 });

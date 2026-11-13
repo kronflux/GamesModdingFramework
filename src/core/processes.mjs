@@ -1,4 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 
 export function withTimeout(promise, ms) {
   if (!Number.isFinite(ms) || ms <= 0) return promise;
@@ -104,4 +106,95 @@ export function runProcess(cmd, args = [], options = {}) {
       }, options.timeoutMs);
     }
   });
+}
+
+// Starts a process that outlives this one. No handle is kept, so it is never stopped from here.
+export function launchDetached(cmd, args = [], options = {}) {
+  const spawnImpl = options.spawnImpl || spawn;
+  const child = spawnImpl(cmd, args, {
+    cwd: options.cwd,
+    detached: true,
+    stdio: "ignore",
+    windowsHide: false,
+  });
+  child.unref();
+  return { pid: child.pid };
+}
+
+const OPENABLE_SCHEMES = new Set(["steam:", "http:", "https:"]);
+
+// Opens a URL with the platform handler. Only steam, http and https URLs are allowed.
+export function openUrl(url, options = {}) {
+  let scheme = "";
+  try {
+    scheme = new URL(String(url)).protocol;
+  } catch {
+    scheme = "";
+  }
+  if (!OPENABLE_SCHEMES.has(scheme)) {
+    const error = new Error(`GMF-E-PLAN-001: refusing to open a URL with scheme "${scheme || "none"}"`);
+    error.code = "GMF-E-PLAN-001";
+    error.remediation = "Use a steam://, http:// or https:// URL.";
+    throw error;
+  }
+  const platform = options.platform || process.platform;
+  let command;
+  let args;
+  if (platform === "win32") {
+    command = "cmd";
+    args = ["/c", "start", "", String(url)];
+  } else if (platform === "darwin") {
+    command = "open";
+    args = [String(url)];
+  } else {
+    command = "xdg-open";
+    args = [String(url)];
+  }
+  launchDetached(command, args, { spawnImpl: options.spawnImpl });
+  return { command, args };
+}
+
+// Reports whether a process runs from exactly this executable path. Only reads the process list.
+export async function isExecutableRunning(exePath, options = {}) {
+  const platform = options.platform || process.platform;
+  const runImpl = options.runImpl || runProcess;
+  if (platform === "linux") {
+    const procDir = options.procDir || "/proc";
+    const wanted = path.posix.normalize(String(exePath));
+    let entries = [];
+    try {
+      entries = fs.readdirSync(procDir).filter((name) => /^\d+$/.test(name));
+    } catch {
+      return false;
+    }
+    for (const pid of entries) {
+      try {
+        if (path.posix.normalize(fs.readlinkSync(`${procDir}/${pid}/exe`)) === wanted) return true;
+      } catch {
+        // process exited or is not readable
+      }
+    }
+    return false;
+  }
+  const win = platform === "win32";
+  const result = win
+    ? await runImpl(
+        "powershell",
+        [
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          "Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath } | ForEach-Object { $_.ExecutablePath }",
+        ],
+        { timeoutMs: 15000 },
+      )
+    : await runImpl("ps", ["-axo", "comm="], { timeoutMs: 15000 });
+  const norm = (value) => {
+    const text = String(value).trim();
+    return win ? path.win32.normalize(text).toLowerCase() : path.posix.normalize(text);
+  };
+  const wanted = norm(exePath);
+  return String(result.stdout || "")
+    .split(/\r?\n/)
+    .some((line) => line.trim() !== "" && norm(line) === wanted);
 }
