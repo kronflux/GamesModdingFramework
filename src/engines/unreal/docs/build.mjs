@@ -134,6 +134,10 @@ export class Docs {
     // Each part of a split document links to the next. `linkNext: false` gives the parts the
     // Python builder wrote, for comparisons against its output.
     this.splitOptions = { linkNext: options.linkNext ?? true };
+    // Script pages show recovered control flow. `structure: false` gives the flat listings the
+    // Python builder wrote.
+    this.structureScripts = options.structure ?? true;
+    this.scriptCounts = { functions: 0, structured: 0 };
     this.manifest = or(this.load("manifest.json"), {});
     if (!schemaAccepted(get(this.manifest, "schema"))) {
       throw new Error(`manifest.json has schema ${pyStr(get(this.manifest, "schema"))}, not a dumper schema`);
@@ -506,6 +510,10 @@ export async function buildDocs(runDir, outDir, options = {}) {
   const sections = docs.build();
   const { files, bytes } = docs.save();
   const brokenLinks = docs.brokenLinks();
+  const { functions, structured } = docs.scriptCounts;
+  if (docs.structureScripts && functions) {
+    docs.log(`scripts: ${structured} of ${functions} functions structured (${Math.round((structured / functions) * 100)}%)`);
+  }
   docs.log(`wrote ${files} files, ${(bytes / 1e6).toFixed(1)} MB, to ${outDir}; ${brokenLinks.length} broken links`);
   return { files, bytes, brokenLinks, sections };
 }

@@ -6,6 +6,7 @@ import { statSync } from "node:fs";
 import { join } from "node:path";
 
 import { disassemble, KismetError, loadNames, loadPointers } from "../kismet.mjs";
+import { structure } from "../structure.mjs";
 import { basename, eachLine, get, getOr, leaf, pyStrip, sortedBy, sortedStrings } from "../text.mjs";
 
 const UBERGRAPH_CALL = /ExecuteUbergraph[\p{L}\p{N}_]*\(0x([0-9A-F]{4})\)/gu;
@@ -98,6 +99,11 @@ export function write(docs) {
       + "runs. Each line starts with its offset in the function. `goto 0x0040` jumps to that offset; `push` and `pop` keep "
       + "the offsets a sequence returns to. An event is a short function that calls the class's `ExecuteUbergraph` function "
       + "with the offset where its logic starts; those offsets are marked `; entry of <event>`.\n"];
+    if (docs.structureScripts) {
+      body.push("A function whose control flow could be recovered is shown structured, with `if`, `while` and "
+        + "`// sequence N` blocks in place of its jumps, and without offsets. No statement is dropped. A function that "
+        + "could not be structured safely is shown as the flat listing, with the reason.\n");
+    }
     if (unresolved) body.push(`${unresolved} references could not be resolved and are shown as \`<0x...>\` or \`<name N>\`.\n`);
     for (const [fn, statements, error] of decoded) {
       body.push(`## ${fn}\n`);
@@ -105,6 +111,17 @@ export function write(docs) {
         body.push(`This function could not be decoded: ${error}.\n`);
         continue;
       }
+      docs.scriptCounts.functions += 1;
+      // An event graph is entered at offsets, so it keeps its offsets and entry marks.
+      const shaped = !docs.structureScripts ? null
+        : fn.startsWith("ExecuteUbergraph") ? { kind: "flat", reason: "event graph, entered at the marked offsets" }
+          : structure(statements);
+      if (shaped?.kind === "structured") {
+        docs.scriptCounts.structured += 1;
+        body.push("```text\n" + shaped.lines.join("\n") + "\n```\n");
+        continue;
+      }
+      if (shaped) body.push(`Flat listing: ${shaped.reason}.\n`);
       const lines = statements.map(({ offset, text }) => {
         const mark = fn.startsWith("ExecuteUbergraph") && entries.has(offset) ? `    ; entry of ${entries.get(offset).join(", ")}` : "";
         return `${offset.toString(16).toUpperCase().padStart(4, "0")}: ${text}${mark}`;

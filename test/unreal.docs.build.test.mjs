@@ -297,7 +297,8 @@ test("each level read as data gets an actor page and the levels are listed", () 
 test("Blueprint bytecode is shown as statements beside its class", () => {
   const page = read("classes/Game/Demo/Items/BP_Sword_C.script.md");
   assert.ok(page.includes("## ReceiveBeginPlay"));
-  assert.ok(page.includes("0000: BP_Sword_C::ExecuteUbergraph_BP_Sword(0x000A)"));
+  assert.ok(page.includes("```text\nBP_Sword_C::ExecuteUbergraph_BP_Sword(0x000A)"), "a function without jumps is shown structured, without offsets");
+  assert.ok(page.includes("Flat listing: event graph, entered at the marked offsets."));
   assert.ok(page.includes("000A: self.Damage = 5    ; entry of ReceiveBeginPlay"));
   assert.ok(page.includes('PlayEffect(name("Glow"))'), "a name only bytecode uses comes from the Names record of the script file");
   assert.ok(page.includes("## Broken"));
