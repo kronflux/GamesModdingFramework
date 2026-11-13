@@ -6,6 +6,7 @@ import { ue4ssSettingsOperation } from "./operations/settings.mjs";
 import { dumpOperation, deployDumperOperation } from "./operations/dump.mjs";
 import { normalizeOperation } from "./operations/normalize.mjs";
 import { verifyDumpOperation } from "./operations/verify_dump.mjs";
+import { runDumpOperation } from "./operations/run_dump.mjs";
 import { scaffoldOperation } from "./operations/scaffold.mjs";
 import { buildOperation } from "./operations/build.mjs";
 import { deployOperation } from "./operations/deploy.mjs";
@@ -64,6 +65,7 @@ export const operations = [
   dumpOperation,
   deployDumperOperation,
   normalizeOperation,
+  runDumpOperation,
   verifyDumpOperation,
   scaffoldOperation,
   buildOperation,

@@ -2460,6 +2460,74 @@
       ]
     },
     {
+      "id": "unreal.run_dump",
+      "title": "Start the game once and dump it with GmfDumper",
+      "summary": "Write Mods/GmfDumper/config.lua for an automatic run, remove the once-only marker, start the game (through Steam when the app id is known, otherwise the executable) and wait for the run. status is complete (the run is collected into dumps/unreal/runs/), empty (the mod produced nothing; manifestReasons says why), crashed (a new crash dump), exited (the game closed without finishing; logTail holds the log), or running (waitMinutes passed; call unreal.dump with collect=true later). It never stops the game. It refuses when the dumper is not deployed or the game is already running.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "string",
+            "description": "full (default) or quick."
+          },
+          "quitWhenDone": {
+            "type": "boolean",
+            "description": "Close the game when the run has finished. Default true."
+          },
+          "waitMinutes": {
+            "type": "number",
+            "description": "How long to wait for the run before returning status running. Default 10."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "run": {
+            "type": "string"
+          },
+          "collected": {
+            "type": "object"
+          },
+          "manifestReasons": {
+            "type": "array"
+          },
+          "crashDump": {
+            "type": "string"
+          },
+          "logTail": {
+            "type": "string"
+          },
+          "advice": {
+            "type": "string"
+          },
+          "launch": {
+            "type": "object"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite",
+        "gameWrite",
+        "launchGame"
+      ],
+      "requires": [],
+      "gates": [
+        "soft"
+      ],
+      "skill": "unreal-first-dump",
+      "docs": []
+    },
+    {
       "id": "unreal.scaffold",
       "title": "Scaffold an Unreal mod",
       "summary": "Render a UE4SS Lua mod, a UE4SS C++ mod or a pak/Blueprint mod project into the workspace mods folder.",

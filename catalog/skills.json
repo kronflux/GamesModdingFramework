@@ -306,6 +306,7 @@
       "operations": [
         "unreal.setup_ue4ss",
         "unreal.deploy_dumper",
+        "unreal.run_dump",
         "unreal.dump",
         "unreal.verify_dump"
       ],
