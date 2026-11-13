@@ -3,11 +3,21 @@
   "engine": "unreal",
   "type": "payload",
   "kind": "payload",
-  "description": "GmfDumper, a thin UE4SS Lua wrapper over the native dump globals, with the vendored UEHelpers module and a settings fragment.",
+  "description": "GmfDumper, the UE4SS mod that dumps a game's reflection data, objects, scripts, levels and assets into one run folder, with its default config and a settings fragment. The native part is downloaded at deploy time.",
   "files": [
     "Mods/GmfDumper/enabled.txt",
+    "Mods/GmfDumper/config.lua",
     "Mods/GmfDumper/Scripts/main.lua",
-    "Mods/shared/UEHelpers/UEHelpers.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/app.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/collect.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/config.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/fs.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/levels.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/manifest.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/runner.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/steps.lua",
+    "Mods/GmfDumper/Scripts/gmfdumper/tour.lua",
+    "Mods/GmfDumper/Scripts/vendor/dkjson.lua",
     "UE4SS-settings.dumpers.ini"
   ]
 }

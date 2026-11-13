@@ -49,7 +49,9 @@ test("deployHelper with authorization writes the mod, backs up and merges only f
   const ue4ss = path.join(gameDir, "ue4ss");
   assert.ok(fs.existsSync(path.join(ue4ss, "Mods", "GmfDumper", "Scripts", "main.lua")));
   assert.ok(fs.existsSync(path.join(ue4ss, "Mods", "GmfDumper", "enabled.txt")));
-  assert.ok(fs.existsSync(path.join(ue4ss, "Mods", "shared", "UEHelpers", "UEHelpers.lua")));
+  assert.ok(fs.existsSync(path.join(ue4ss, "Mods", "GmfDumper", "Scripts", "gmfdumper", "app.lua")));
+  assert.ok(fs.existsSync(path.join(ue4ss, "Mods", "GmfDumper", "config.lua")));
+  assert.equal(fs.existsSync(path.join(ue4ss, "Mods", "shared", "UEHelpers")), false);
   const ini = fs.readFileSync(path.join(ue4ss, "UE4SS-settings.ini"), "utf8");
   assert.match(ini, /bUseUObjectArrayCache = 1/);
   assert.match(ini, /UseModuleOffsets = 1/);
@@ -60,12 +62,16 @@ test("deployHelper with authorization writes the mod, backs up and merges only f
   assert.match(fs.readFileSync(settingsBackup.path, "utf8"), /UseModuleOffsets = 0/);
 });
 
-test("the dumper script writes its report into the UE4SS folder and runs key binds on the game thread", () => {
-  const source = fs.readFileSync(path.join(repoRoot, "templates/unreal/dumper/Mods/GmfDumper/Scripts/main.lua"), "utf8");
-  assert.doesNotMatch(source, /io\.open, REPORT_FILE_NAME/, "a bare report name resolves against Binaries/Win64");
-  assert.match(source, /Ue4ssDir \.\. "\/" \.\. REPORT_FILE_NAME/);
-  assert.match(source, /RegisterKeyBind\(KeyValue, function\(\)\s+ExecuteInGameThread/);
-  assert.doesNotMatch(source, /^local UEHelpers = require/m, "the unused UEHelpers require is gone");
+test("the deployed mod is the full dumper: entry script, modules, vendored JSON and default config", () => {
+  const mod = path.join(repoRoot, "templates/unreal/dumper/Mods/GmfDumper");
+  const main = fs.readFileSync(path.join(mod, "Scripts", "main.lua"), "utf8");
+  assert.match(main, /require\("gmfdumper\.app"\)/);
+  for (const name of ["app", "collect", "config", "fs", "levels", "manifest", "runner", "steps", "tour"]) {
+    assert.ok(fs.existsSync(path.join(mod, "Scripts", "gmfdumper", `${name}.lua`)), name);
+  }
+  assert.ok(fs.existsSync(path.join(mod, "Scripts", "vendor", "dkjson.lua")));
+  assert.ok(fs.existsSync(path.join(mod, "config.lua")));
+  assert.equal(fs.existsSync(path.join(repoRoot, "templates/unreal/dumper/Mods/shared")), false, "UEHelpers is no longer part of the payload");
 });
 
 test("mergeIniKeys changes only keys in the fragment and appends missing ones", () => {

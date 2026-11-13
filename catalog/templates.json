@@ -47,7 +47,7 @@
       "type": "payload",
       "kind": "payload",
       "path": "templates/unreal/dumper",
-      "description": "GmfDumper, a thin UE4SS Lua wrapper over the native dump globals, with the vendored UEHelpers module and a settings fragment."
+      "description": "GmfDumper, the UE4SS mod that dumps a game's reflection data, objects, scripts, levels and assets into one run folder, with its default config and a settings fragment. The native part is downloaded at deploy time."
     },
     {
       "id": "unreal-features",
