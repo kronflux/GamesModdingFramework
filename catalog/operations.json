@@ -1965,7 +1965,7 @@
     {
       "id": "unreal.deploy_dumper",
       "title": "Deploy the GmfDumper UE4SS helper",
-      "summary": "Copy the GmfDumper mod and the shared UEHelpers module into the UE4SS Mods folder and merge the dumper keys into UE4SS-settings.ini. Every overwritten file is backed up first.",
+      "summary": "Copy the GmfDumper Lua mod and its default config into the UE4SS Mods folder and merge the dumper keys into UE4SS-settings.ini. With a toolInstall authorization it also downloads the native part (dlls/main.dll) and installs it only when it was built for the installed UE4SS build; native reports installed, mismatch, unknown, unavailable or not_authorized, and an older dll that is not replaced is removed. Every overwritten or removed file is backed up first.",
       "engine": "unreal",
       "inputs": {
         "type": "object",
@@ -1990,6 +1990,9 @@
           },
           "settings": {
             "type": "string"
+          },
+          "native": {
+            "type": "object"
           }
         }
       },
@@ -2008,7 +2011,7 @@
     {
       "id": "unreal.dump",
       "title": "Dump Unreal objects, usmap and headers",
-      "summary": "Prepare the UE4SS dump layout in the workspace, detect existing object, usmap and header dumps, and return the exact console commands or settings for the missing ones. collect copies the dumps into dumps/ and normalizes the object dump unless normalize is false. With deployHelper set it also writes the GmfDumper mod into the game folder and then needs a gameWrite authorization; that gate is checked in the handler because the effect depends on the input.",
+      "summary": "Prepare the UE4SS dump layout in the workspace, detect existing object, usmap and header dumps, and return the exact console commands or settings for the missing ones. collect copies the newest complete GmfDumper run into dumps/unreal/runs/<run>/ and the loose UE4SS dumps into dumps/, then normalizes the object dump to dumps/unreal-objects.json unless normalize is false. With deployHelper set it also writes the GmfDumper mod into the game folder and installs its native part when that matches the installed UE4SS (reported under helper.native); it then needs a gameWrite authorization, and the native part needs toolInstall. Both gates are checked in the handler because the effect depends on the input.",
       "engine": "unreal",
       "inputs": {
         "type": "object",
@@ -2029,7 +2032,7 @@
           },
           "collect": {
             "type": "boolean",
-            "description": "Copy the object dump, usmap, header dump and GmfDumper report from the UE4SS folder into dumps/ and normalize the object dump."
+            "description": "Copy the newest complete GmfDumper run into dumps/unreal/runs/, and the object dump, usmap and header dump from the UE4SS folder into dumps/, then normalize the object dump."
           }
         },
         "required": []

@@ -133,7 +133,11 @@ export function dumpRoots(profile, context = {}) {
   return [...new Set(roots.map((root) => path.resolve(root)))];
 }
 
-function walkJson(dir, files = []) {
+// Collected dumper runs live under <dumps>/unreal/runs. Their files are raw reflection data, not
+// normalized dumps, so the readers do not look inside.
+const COLLECTED_RUNS = "unreal/runs";
+
+function walkJson(dir, files = [], top = dir) {
   let entries;
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -142,7 +146,10 @@ function walkJson(dir, files = []) {
   }
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walkJson(full, files);
+    if (entry.isDirectory()) {
+      if (path.relative(top, full).split(path.sep).join("/") === COLLECTED_RUNS) continue;
+      walkJson(full, files, top);
+    }
     else if (entry.isFile() && entry.name.toLowerCase().endsWith(".json")) files.push(full);
   }
   return files;

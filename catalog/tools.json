@@ -223,6 +223,32 @@
       "notes": "Modern games, and every Unreal Engine 5.4+ game, need the rolling experimental-latest build; the versioned releases (v3.0.1 and older) lack the structural changes and UE 5.6 support. The zDEV- asset is the developer build with extra debug tooling."
     },
     {
+      "id": "gmfdumper-native",
+      "name": "GmfDumper native part",
+      "purpose": "The C++ part of GmfDumper, built against the latest experimental UE4SS.",
+      "engine": "unreal",
+      "license": "MIT",
+      "source": {
+        "type": "github",
+        "repo": "kronflux/GamesModdingFramework",
+        "tag": "gmfdumper-latest"
+      },
+      "versionPolicy": "tag",
+      "asset": "^GmfDumper-native\\.zip$",
+      "entry": "dlls/main.dll",
+      "verify": {
+        "kind": "github-digest",
+        "value": null
+      },
+      "effects": [
+        "toolInstall",
+        "network"
+      ],
+      "capabilities": [
+        "unreal.dump"
+      ]
+    },
+    {
       "id": "repak",
       "name": "repak",
       "purpose": "List, unpack and pack Unreal Engine .pak files (no compressed or encrypted writes).",

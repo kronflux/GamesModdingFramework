@@ -1,0 +1,9 @@
+{
+  "schema": "gmfdumper.run_complete/1",
+  "finished": "2026-11-12T10:05:00Z",
+  "profile": "quick",
+  "produced": ["Objects/UE4SS_ObjectDump.txt", "Reflection/classes.json"],
+  "steps_ok": 2,
+  "steps_failed": 0,
+  "steps_skipped": 0
+}

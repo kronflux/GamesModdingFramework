@@ -658,6 +658,31 @@
       ]
     },
     {
+      "id": "unreal.asset-export",
+      "title": "Tools that export Unreal assets (textures, meshes, audio, animation)",
+      "engine": "unreal",
+      "tags": [
+        "assets",
+        "export",
+        "textures",
+        "meshes",
+        "audio",
+        "cue4parse",
+        "fmodel",
+        "umodel",
+        "iostore"
+      ],
+      "summary": "Which tools read cooked Unreal content out of pak and IoStore containers, what each covers, and when a mod needs them. Not part of the first dump.",
+      "path": "knowledge/unreal/asset-export-tools.md",
+      "confidence": "inferred",
+      "sources": [
+        "FabianFG/CUE4Parse README and source",
+        "4sval/FModel README",
+        "gildor2/UEViewer README",
+        "tool survey of 2026-11-12 (web reading only; none of these tools was run by gmf)"
+      ]
+    },
+    {
       "id": "unreal.asset-pipeline",
       "title": "Unreal asset mods with retoc, repak and UAssetGUI",
       "engine": "unreal",
@@ -681,6 +706,27 @@
         "atenfyr/UAssetGUI README (v1.1.1 experimental)",
         "Dmgvol UE_Modding ExtractingIoStore guide",
         "gmf run on a UE 5.6 IoStore title 2026-11-07"
+      ]
+    },
+    {
+      "id": "unreal.blueprint-mods.suzie",
+      "title": "Blueprint mods against game classes with Suzie and the jmap",
+      "engine": "unreal",
+      "tags": [
+        "blueprint",
+        "suzie",
+        "jmap",
+        "editor",
+        "logicmods",
+        "pak"
+      ],
+      "summary": "How the .jmap file from a GmfDumper run lets the Unreal editor see a game's classes, so a Blueprint mod can be written against them without recreating C++ headers.",
+      "path": "knowledge/unreal/blueprint-mods-suzie.md",
+      "confidence": "inferred",
+      "sources": [
+        "trumank/Suzie README (states it was tested on UE 5.3 to 5.6)",
+        "UE4SS jmap dumper documentation",
+        "tool survey of 2026-11-12 (web reading only; not run by gmf)"
       ]
     },
     {
@@ -808,6 +854,52 @@
       "confidence": "observed",
       "sources": [
         "earlier Unreal modding framework notes"
+      ]
+    },
+    {
+      "id": "unreal.gamedocs",
+      "title": "The gamedocs folder of an Unreal game",
+      "engine": "unreal",
+      "tags": [
+        "gamedocs",
+        "docs",
+        "dumps",
+        "classes",
+        "bytecode",
+        "levels",
+        "datatables",
+        "settings",
+        "localization"
+      ],
+      "summary": "What unreal.build_docs writes into gamedocs/, which page answers which modding question, and how to read the pages without loading the whole folder.",
+      "path": "knowledge/unreal/gamedocs-layout.md",
+      "confidence": "verified",
+      "sources": [
+        "gmf src/engines/unreal/docs",
+        "GmfDumper run on a UE 5.6 IoStore title 2026-11-12 (8095 pages)"
+      ]
+    },
+    {
+      "id": "unreal.gmfdumper.native",
+      "title": "The native part of GmfDumper and how it is paired with UE4SS",
+      "engine": "unreal",
+      "tags": [
+        "gmfdumper",
+        "native",
+        "dll",
+        "ue4ss",
+        "release",
+        "workflow",
+        "pairing"
+      ],
+      "summary": "Why GmfDumper has a C++ DLL, how the rolling release is built, how deploy decides whether to install it, and what a run without it still produces.",
+      "path": "knowledge/unreal/gmfdumper-native-build.md",
+      "confidence": "observed",
+      "sources": [
+        "gmf native/gmfdumper",
+        "gmf scripts/build-dumper.mjs",
+        "gmf .github/workflows/gmfdumper.yml",
+        "local build against RE-UE4SS 4fb9b615 on 2026-11-13"
       ]
     },
     {

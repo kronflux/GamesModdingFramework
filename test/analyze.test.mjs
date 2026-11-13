@@ -186,6 +186,23 @@ test("analyze.classes matches method and field names and reports which member ma
   assert.deepEqual(byName.data.results.find((entry) => entry.name === "AFixtureGameMode").matches, ["name"]);
 });
 
+test("analyze operations ignore collected runs under dumps/unreal/runs", async (t) => {
+  const workspaceRoot = tempDir(t, "gmf-analyze-runs-");
+  const dumps = path.join(workspaceRoot, "dumps");
+  fs.mkdirSync(path.join(dumps, "unreal", "runs", "r1", "Reflection"), { recursive: true });
+  fs.writeFileSync(path.join(dumps, "unreal-objects.json"), JSON.stringify({ version: 1, engine: "unreal", classes: [{ name: "Kept" }] }));
+  fs.writeFileSync(path.join(dumps, "unreal", "runs", "r1", "Reflection", "classes.json"), JSON.stringify({ version: 1, engine: "unreal", classes: [{ name: "OnlyInRun" }] }));
+  fs.writeFileSync(path.join(dumps, "unreal", "runs", "r1", "Reflection", "broken.json"), "{ not json");
+  const context = { root: repoRoot, workspace: { root: workspaceRoot } };
+  const profile = { engine: { id: "unreal" }, paths: {} };
+  const missing = await executeOperation("analyze.classes", { profile, query: "OnlyInRun" }, context);
+  assert.equal(missing.ok, true, missing.error?.message);
+  assert.deepEqual(missing.data.results, []);
+  assert.deepEqual(missing.data.skipped ?? [], [], "run files are not listed as skipped");
+  const kept = await executeOperation("analyze.classes", { profile, query: "Kept" }, context);
+  assert.deepEqual(kept.data.results.map((entry) => entry.name), ["Kept"]);
+});
+
 test("a dump file that cannot be read is reported as skipped", async (t) => {
   const dumps = tempDir(t, "gmf-analyze-skipped-");
   fs.writeFileSync(path.join(dumps, "good.json"), JSON.stringify({ version: 1, engine: "unity", classes: [{ name: "Kept" }] }));

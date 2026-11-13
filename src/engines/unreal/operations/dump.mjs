@@ -6,19 +6,21 @@ import { fileURLToPath } from "node:url";
 import { evidence } from "../../../core/evidence.mjs";
 import { resolveAuthorization } from "../../../core/authorization.mjs";
 import { backupFile } from "../../../core/workspace.mjs";
+import { installTool } from "../../../core/tools.mjs";
+import { loadCatalog } from "../../../core/catalog.mjs";
 import { safeReaddir } from "../../../core/fsutil.mjs";
 import { detectUe4ss, findBinariesDir } from "../detect.mjs";
 import {
   copyTreeWithBackup,
   ensureInsideWorkspace,
   gmfError,
-  isFile,
   resolveGameDirInput,
   slugify,
+  toolCacheFrom,
   walkFiles,
   workspaceRoot,
 } from "./shared.mjs";
-import { authorizationContext } from "./setup_ue4ss.mjs";
+import { authorizationContext, readUe4ssInstall } from "./setup_ue4ss.mjs";
 import { normalizeObjectDump } from "./normalize.mjs";
 import { writeNormalizedDump } from "../../../operations/analyze/normalize.mjs";
 
@@ -244,7 +246,173 @@ export function deployDumperHelper(context, loader) {
   };
 }
 
-const HELPER_REPORT = "GmfDumper_report.txt";
+const NATIVE_TOOL = "gmfdumper-native";
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
+
+function readJsonObject(file) {
+  try {
+    const value = JSON.parse(fs.readFileSync(file, "utf8"));
+    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+// A dll built for another UE4SS build can crash the game, so one that is not replaced by a matching
+// build is backed up and removed.
+function removeStaleDll(context, dll) {
+  if (!fs.existsSync(dll)) return [];
+  if (!context?.workspace?.root) {
+    throw gmfError(
+      "GMF-E-GATE-001",
+      `GMF-E-GATE-001: removing the old native part ${dll} needs a workspace so it can be backed up.`,
+      "Run gmf init first, or pass --workspace.",
+    );
+  }
+  const backup = backupFile(context.workspace, dll);
+  fs.rmSync(dll);
+  return [{ target: dll, path: backup.backupPath, sha256: backup.sha256 }];
+}
+
+// Install the native part of GmfDumper (dlls/main.dll) next to the Lua mod, only when it was built for
+// the UE4SS build that is installed. Decision order: toolInstall authorization, the install record
+// (gmf-install.json), the download, then build.json against the record. backup lists the files this
+// call replaced or removed.
+export async function deployNativePart(context, loader) {
+  const dll = path.join(loader.path, "Mods", "GmfDumper", "dlls", "main.dll");
+  const { plan, overrides } = authorizationContext(context);
+  const authorization = resolveAuthorization({ effects: ["toolInstall"], plan, overrides });
+  let result;
+  let backup = [];
+  if (!authorization.allowed) {
+    result = {
+      native: "not_authorized",
+      advice: 'Add a toolInstall authorization to install the native part, or pass --authorized toolInstall --source "<user instruction>".',
+    };
+  } else {
+    const record = readUe4ssInstall(loader.path);
+    if (!record) {
+      result = {
+        native: "unknown",
+        advice: "The installed UE4SS has no gmf-install.json, so the native part cannot be matched to it. Run unreal.setup_ue4ss, then deploy again.",
+      };
+    } else {
+      result = await installNative(context, loader, record, dll, authorization.source);
+      if (result.native === "installed") backup = result.backup;
+    }
+  }
+  if (result.native !== "installed") backup = removeStaleDll(context, dll);
+  return { ...result, backup };
+}
+
+async function installNative(context, loader, record, dll, source) {
+  let installed;
+  try {
+    installed = await installTool(NATIVE_TOOL, {
+      authorized: true,
+      source: source || "unreal.deploy_dumper",
+      catalog: context.catalog || loadCatalog(REPO_ROOT),
+      cacheDir: toolCacheFrom(context),
+      fetchImpl: context.fetchImpl || globalThis.fetch,
+    });
+  } catch (error) {
+    return {
+      native: "unavailable",
+      error: error.message,
+      advice: "The native part could not be downloaded. The Lua mod still runs, without the native steps.",
+    };
+  }
+  const build = readJsonObject(path.join(path.dirname(path.dirname(installed.path)), "build.json"));
+  if (!build) {
+    return { native: "unavailable", error: "The native part has no readable build.json.", advice: "Report the broken release." };
+  }
+  if (build.ue4ss_asset !== record.asset) {
+    return {
+      native: "mismatch",
+      installedAsset: record.asset,
+      builtFor: build.ue4ss_asset ?? null,
+      advice: "The native part was built for another UE4SS build and is not installed. The Lua mod still runs, without the native steps. Wait for a rebuilt release, or build it with scripts/build-dumper.mjs against the installed UE4SS.",
+    };
+  }
+  const [deployed] = copyTreeWithBackup(context, [{ source: installed.path, target: dll }]);
+  return {
+    native: "installed",
+    installedAsset: record.asset,
+    builtFor: build.ue4ss_asset,
+    deployed,
+    backup: deployed.backup ? [{ target: deployed.target, path: deployed.backup, sha256: deployed.sha256 }] : [],
+  };
+}
+
+// The Lua mod, the settings keys and the native part. The native result is reported under native, and
+// its backups and copied file join deployed and backup.
+export async function deployDumper(context, loader) {
+  const helper = deployDumperHelper(context, loader);
+  const { backup, deployed, ...native } = await deployNativePart(context, loader);
+  if (deployed) helper.deployed.push(deployed);
+  helper.backup.push(...backup);
+  return { ...helper, native };
+}
+
+// Runs the game wrote under <ue4ss>/Dumps/<run>/, newest first. A run is complete when its
+// run_complete.json parses; finished is that file's timestamp.
+export function listRuns(ue4ssDir) {
+  const base = path.join(ue4ssDir, "Dumps");
+  const runs = [];
+  for (const entry of safeReaddir(base, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const full = path.join(base, entry.name);
+    const complete = readJsonObject(path.join(full, "run_complete.json"));
+    const finished = complete && typeof complete.finished === "string" ? complete.finished : null;
+    let rank = Date.parse(finished || "");
+    if (Number.isNaN(rank)) {
+      try {
+        rank = fs.statSync(full).mtimeMs;
+      } catch {
+        rank = 0;
+      }
+    }
+    runs.push({ name: entry.name, path: full, complete: complete !== null, finished, rank });
+  }
+  runs.sort((a, b) => b.rank - a.rank || (a.name < b.name ? 1 : -1));
+  return runs.map(({ rank, ...run }) => run);
+}
+
+// Copy one complete run to <workspace>/dumps/unreal/runs/<name>/ and, unless normalize is false,
+// normalize its Objects/UE4SS_ObjectDump.txt to <workspace>/dumps/unreal-objects.json. The default
+// run is the newest complete one.
+export function collectRun(ue4ssDir, workspaceRootDir, { run, normalize = true } = {}) {
+  const runs = listRuns(ue4ssDir);
+  const chosen = run ? runs.find((entry) => entry.name === run) : runs.find((entry) => entry.complete);
+  if (!chosen) {
+    throw gmfError(
+      "GMF-E-PLAN-001",
+      run ? `No dumper run named ${run} in ${path.join(ue4ssDir, "Dumps")}.` : `No complete dumper run in ${path.join(ue4ssDir, "Dumps")}.`,
+      "Run unreal.run_dump, or start the game once with GmfDumper deployed, then collect again.",
+    );
+  }
+  if (!chosen.complete) {
+    throw gmfError(
+      "GMF-E-PLAN-001",
+      `GMF-E-PLAN-001: the run ${chosen.name} is incomplete: it has no readable run_complete.json.`,
+      "Let the dump finish, or choose a complete run.",
+    );
+  }
+  const target = path.join(workspaceRootDir, "dumps", "unreal", "runs", chosen.name);
+  let copied = 0;
+  for (const file of walkFiles(chosen.path)) {
+    const destination = path.join(target, path.relative(chosen.path, file));
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.copyFileSync(file, destination);
+    copied += 1;
+  }
+  let dump = null;
+  const objects = path.join(target, "Objects", "UE4SS_ObjectDump.txt");
+  if (normalize && fs.existsSync(objects)) {
+    dump = writeNormalizedDump(workspaceRootDir, "unreal-objects.json", normalizeObjectDump(fs.readFileSync(objects, "utf8")));
+  }
+  return { run: chosen.name, path: target, copied, dump };
+}
 
 // Copy the dumps UE4SS and GmfDumper wrote into the workspace dumps folder, then (unless normalize is
 // false) normalize the chosen object dump to unreal-objects.json. roots are searched in order, like
@@ -271,11 +439,6 @@ export function collectDumpArtifacts(ue4ssDir, dumpsDir, { roots = [ue4ssDir], n
         copyOne(candidate.path, path.join(dumpsDir, candidate.name));
       }
     }
-    const report = path.join(root, HELPER_REPORT);
-    if (!taken.has(HELPER_REPORT.toLowerCase()) && isFile(report)) {
-      taken.add(HELPER_REPORT.toLowerCase());
-      copyOne(report, path.join(dumpsDir, HELPER_REPORT));
-    }
     const headers = headersCopied ? null : chooseDump(dumpsIn(root, "headers"));
     if (headers) {
       headersCopied = true;
@@ -295,7 +458,7 @@ export const dumpOperation = {
   id: "unreal.dump",
   title: "Dump Unreal objects, usmap and headers",
   summary:
-    "Prepare the UE4SS dump layout in the workspace, detect existing object, usmap and header dumps, and return the exact console commands or settings for the missing ones. collect copies the dumps into dumps/ and normalizes the object dump unless normalize is false. With deployHelper set it also writes the GmfDumper mod into the game folder and then needs a gameWrite authorization; that gate is checked in the handler because the effect depends on the input.",
+    "Prepare the UE4SS dump layout in the workspace, detect existing object, usmap and header dumps, and return the exact console commands or settings for the missing ones. collect copies the newest complete GmfDumper run into dumps/unreal/runs/<run>/ and the loose UE4SS dumps into dumps/, then normalizes the object dump to dumps/unreal-objects.json unless normalize is false. With deployHelper set it also writes the GmfDumper mod into the game folder and installs its native part when that matches the installed UE4SS (reported under helper.native); it then needs a gameWrite authorization, and the native part needs toolInstall. Both gates are checked in the handler because the effect depends on the input.",
   engine: "unreal",
   inputs: {
     type: "object",
@@ -312,7 +475,7 @@ export const dumpOperation = {
       },
       collect: {
         type: "boolean",
-        description: "Copy the object dump, usmap, header dump and GmfDumper report from the UE4SS folder into dumps/ and normalize the object dump.",
+        description: "Copy the newest complete GmfDumper run into dumps/unreal/runs/, and the object dump, usmap and header dump from the UE4SS folder into dumps/, then normalize the object dump.",
       },
     },
     required: [],
@@ -348,7 +511,7 @@ export const dumpOperation = {
     }
 
     // The gate runs before any write, so a refused deploy leaves the workspace untouched too.
-    const helper = inputs.deployHelper === true ? deployDumperHelper(context, loader) : null;
+    const helper = inputs.deployHelper === true ? await deployDumper(context, loader) : null;
 
     const outputDir = ensureInsideWorkspace(
       context,
@@ -403,6 +566,11 @@ export const dumpOperation = {
     if (inputs.collect === true) {
       collected = collectDumpArtifacts(loader.path, dumpsDir, { roots, normalize });
       dump = collected.dump;
+      if (listRuns(loader.path).some((entry) => entry.complete)) {
+        const run = collectRun(loader.path, workspaceRoot(context), { normalize });
+        collected = { ...collected, run: run.run, runPath: run.path, runCopied: run.copied };
+        dump = run.dump || dump;
+      }
     }
     const objects = artifacts.find((artifact) => artifact.kind === "objects" && artifact.status === "found");
     if (!dump && objects && normalize) {
@@ -433,7 +601,7 @@ export const deployDumperOperation = {
   id: "unreal.deploy_dumper",
   title: "Deploy the GmfDumper UE4SS helper",
   summary:
-    "Copy the GmfDumper mod and the shared UEHelpers module into the UE4SS Mods folder and merge the dumper keys into UE4SS-settings.ini. Every overwritten file is backed up first.",
+    "Copy the GmfDumper Lua mod and its default config into the UE4SS Mods folder and merge the dumper keys into UE4SS-settings.ini. With a toolInstall authorization it also downloads the native part (dlls/main.dll) and installs it only when it was built for the installed UE4SS build; native reports installed, mismatch, unknown, unavailable or not_authorized, and an older dll that is not replaced is removed. Every overwritten or removed file is backed up first.",
   engine: "unreal",
   inputs: {
     type: "object",
@@ -449,6 +617,7 @@ export const deployDumperOperation = {
       backup: { type: "array" },
       mod: { type: "string" },
       settings: { type: "string" },
+      native: { type: "object" },
     },
   },
   effects: ["read", "workspaceWrite", "gameWrite"],
@@ -467,9 +636,9 @@ export const deployDumperOperation = {
         "Run unreal.setup_ue4ss with an authorization for toolInstall first.",
       );
     }
-    const helper = deployDumperHelper(context, loader);
+    const helper = await deployDumper(context, loader);
     return {
-      data: { deployed: helper.deployed, backup: helper.backup, mod: helper.mod, settings: helper.settings },
+      data: { deployed: helper.deployed, backup: helper.backup, mod: helper.mod, settings: helper.settings, native: helper.native },
       authorization: helper.authorization,
       evidence: [
         evidence({
@@ -477,7 +646,7 @@ export const deployDumperOperation = {
           confidence: "observed",
           authority: "controlled-replay",
           source: helper.mod,
-          detail: { backups: helper.backup.length },
+          detail: { backups: helper.backup.length, native: helper.native.native },
         }),
       ],
     };

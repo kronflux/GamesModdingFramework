@@ -5,7 +5,10 @@ import os from "node:os";
 import path from "node:path";
 import unreal from "../src/engines/unreal/index.mjs";
 import { executeOperation, registerOperation } from "../src/core/operations.mjs";
-import { mergeIniKeys, collectDumpArtifacts } from "../src/engines/unreal/operations/dump.mjs";
+import crypto from "node:crypto";
+import { mergeIniKeys, collectDumpArtifacts, deployNativePart, listRuns, collectRun } from "../src/engines/unreal/operations/dump.mjs";
+import { createZip } from "../src/engines/unreal/operations/zip.mjs";
+import { loadCatalog } from "../src/core/catalog.mjs";
 import { repoRoot, fixture as fixturePath } from "./helpers/paths.mjs";
 import { snapshotTree } from "./helpers/tree.mjs";
 
@@ -103,11 +106,11 @@ test("collect copies artifacts and normalizes", async () => {
   assert.deepEqual(blueprint.methods, ["ReceiveBeginPlay"]);
   assert.ok(normalized.entrypoints.some((entry) => entry.name === "BeginPlay" && entry.class === "GameModeBase"));
   const names = result.data.collected.copied.map((file) => path.basename(file));
-  for (const expected of ["UE4SS_ObjectDump.txt", "Mappings.usmap", "GmfDumper_report.txt", "Fixture.hpp"]) {
+  for (const expected of ["UE4SS_ObjectDump.txt", "Mappings.usmap", "Fixture.hpp"]) {
     assert.ok(names.includes(expected), `${expected} missing from ${names.join(",")}`);
   }
   const direct = collectDumpArtifacts(path.join(gameDir, "ue4ss"), path.join(workspace.root, "dumps"));
-  assert.ok(direct.copied.length >= 4);
+  assert.ok(direct.copied.length >= 3);
 });
 
 function dumpGame(name, mutate) {
@@ -196,4 +199,234 @@ test("the dump operation says its gameWrite gate depends on deployHelper", () =>
   assert.match(dump.summary, /deployHelper/);
   assert.match(dump.summary, /gameWrite/);
   assert.equal(dump.effects.includes("gameWrite"), false, "the effect depends on an input, so the handler gates it");
+});
+
+// ---- native part -------------------------------------------------------------------------------
+
+const INSTALL_ASSET = "UE4SS_v3.0.1-100-gaaaaaaa.zip";
+const OTHER_ASSET = "UE4SS_v3.0.1-200-gbbbbbbb.zip";
+
+function nativeZip(name, { builtFor }) {
+  const dir = path.join(root, `zip-${name}`);
+  fs.mkdirSync(dir, { recursive: true });
+  // Created at run time: the content gate refuses a committed .dll.
+  fs.writeFileSync(path.join(dir, "main.dll"), Buffer.from("NEW!"));
+  fs.writeFileSync(
+    path.join(dir, "build.json"),
+    JSON.stringify({ schema: "gmfdumper.build/1", ue4ss_asset: builtFor, ue4ss_digest: null, source_hash: "abc", built_at: "2026-11-12T00:00:00Z" }),
+  );
+  const zip = path.join(dir, "GmfDumper-native.zip");
+  createZip(zip, [
+    { file: path.join(dir, "main.dll"), name: "dlls/main.dll" },
+    { file: path.join(dir, "build.json"), name: "build.json" },
+  ]);
+  return fs.readFileSync(zip);
+}
+
+function releaseFetch(zipBytes, calls = []) {
+  const digest = `sha256:${crypto.createHash("sha256").update(zipBytes).digest("hex")}`;
+  return async (url) => {
+    calls.push(url);
+    if (url.includes("/releases/tags/gmfdumper-latest")) {
+      return {
+        ok: true,
+        json: async () => ({
+          tag_name: "gmfdumper-latest",
+          draft: false,
+          prerelease: true,
+          assets: [{ name: "GmfDumper-native.zip", browser_download_url: "https://dl/native", digest }],
+        }),
+      };
+    }
+    if (url === "https://dl/native") return { ok: true, arrayBuffer: async () => zipBytes };
+    return { ok: false, status: 404 };
+  };
+}
+
+function nativeGame(name, { installedAsset = INSTALL_ASSET, stale = false } = {}) {
+  const gameDir = copyFixture("ue4ss-dumps", path.join(root, name));
+  const ue4ss = path.join(gameDir, "ue4ss");
+  if (installedAsset) {
+    fs.writeFileSync(
+      path.join(ue4ss, "gmf-install.json"),
+      JSON.stringify({ schema: "gmf.ue4ss_install/1", asset: installedAsset, digest: null, installed_at: "2026-11-12T00:00:00Z" }),
+    );
+  }
+  fs.mkdirSync(path.join(ue4ss, "Mods", "GmfDumper", "Scripts"), { recursive: true });
+  fs.writeFileSync(path.join(ue4ss, "Mods", "GmfDumper", "Scripts", "main.lua"), "-- old main\n");
+  if (stale) {
+    fs.mkdirSync(path.join(ue4ss, "Mods", "GmfDumper", "dlls"), { recursive: true });
+    fs.writeFileSync(path.join(ue4ss, "Mods", "GmfDumper", "dlls", "main.dll"), Buffer.from("OLD!"));
+  }
+  return { gameDir, ue4ss, dll: path.join(ue4ss, "Mods", "GmfDumper", "dlls", "main.dll"), lua: path.join(ue4ss, "Mods", "GmfDumper", "Scripts", "main.lua") };
+}
+
+function nativeContext(name, { fetchImpl, toolInstall = true } = {}) {
+  const tool = loadCatalog(repoRoot).tools.find((entry) => entry.id === "gmfdumper-native");
+  assert.ok(tool, "the catalog registers gmfdumper-native");
+  const authorizations = [{ effect: "gameWrite", source: "test: deploy" }];
+  if (toolInstall) authorizations.push({ effect: "toolInstall", source: "test: native part" });
+  return {
+    workspace: workspaceAt(`ws-${name}`),
+    catalog: { version: 1, tools: [tool] },
+    toolCacheDir: path.join(root, `toolcache-${name}`),
+    fetchImpl,
+    authorizations,
+  };
+}
+
+const outsideUe4ss = (gameDir) => ({ binaries: snapshotTree(path.join(gameDir, "Binaries")), content: snapshotTree(path.join(gameDir, "Content")) });
+
+test("AC-1 deploy installs the mod, its config and a matching native part", async () => {
+  const game = nativeGame("native-ok");
+  const context = nativeContext("native-ok", { fetchImpl: releaseFetch(nativeZip("ok", { builtFor: INSTALL_ASSET })) });
+  const before = outsideUe4ss(game.gameDir);
+  const result = await executeOperation("unreal.deploy_dumper", { gameDir: game.gameDir }, context);
+  assert.equal(result.ok, true, result.error?.message);
+  assert.equal(result.data.native.native, "installed");
+  assert.ok(fs.existsSync(game.lua));
+  assert.ok(fs.existsSync(path.join(game.ue4ss, "Mods", "GmfDumper", "config.lua")));
+  assert.equal(fs.readFileSync(game.dll, "utf8"), "NEW!");
+  assert.notEqual(fs.readFileSync(game.lua, "utf8"), "-- old main\n");
+  for (const target of ["main.lua", "UE4SS-settings.ini"]) {
+    const entry = result.data.backup.find((item) => item.target.endsWith(target));
+    assert.ok(entry && fs.existsSync(entry.path), `${target} is backed up`);
+  }
+  assert.match(fs.readFileSync(path.join(game.ue4ss, "UE4SS-settings.ini"), "utf8"), /UseModuleOffsets = 1/);
+  assert.deepEqual(outsideUe4ss(game.gameDir), before, "nothing is written outside the UE4SS folder");
+  assert.ok(fs.existsSync(path.join(context.toolCacheDir, "gmfdumper-native")), "the download went to the tool cache");
+});
+
+test("AC-2 a native part that does not match, or cannot be checked, is not installed", async () => {
+  const mismatched = nativeGame("native-mismatch");
+  const mismatch = await executeOperation(
+    "unreal.deploy_dumper",
+    { gameDir: mismatched.gameDir },
+    nativeContext("native-mismatch", { fetchImpl: releaseFetch(nativeZip("other", { builtFor: OTHER_ASSET })) }),
+  );
+  assert.equal(mismatch.ok, true, mismatch.error?.message);
+  assert.equal(mismatch.data.native.native, "mismatch");
+  assert.equal(mismatch.data.native.installedAsset, INSTALL_ASSET);
+  assert.equal(mismatch.data.native.builtFor, OTHER_ASSET);
+  assert.ok(mismatch.data.native.advice);
+  assert.equal(fs.existsSync(mismatched.dll), false);
+  assert.notEqual(fs.readFileSync(mismatched.lua, "utf8"), "-- old main\n");
+
+  const unknownGame = nativeGame("native-unknown", { installedAsset: null });
+  const unknownCalls = [];
+  const unknown = await executeOperation(
+    "unreal.deploy_dumper",
+    { gameDir: unknownGame.gameDir },
+    nativeContext("native-unknown", { fetchImpl: releaseFetch(nativeZip("unk", { builtFor: INSTALL_ASSET }), unknownCalls) }),
+  );
+  assert.equal(unknown.data.native.native, "unknown");
+  assert.equal(fs.existsSync(unknownGame.dll), false);
+  assert.notEqual(fs.readFileSync(unknownGame.lua, "utf8"), "-- old main\n");
+  assert.deepEqual(unknownCalls, [], "without an install record nothing is downloaded");
+
+  const unauthorizedGame = nativeGame("native-unauth");
+  const unauthorizedCalls = [];
+  const unauthorized = await executeOperation(
+    "unreal.deploy_dumper",
+    { gameDir: unauthorizedGame.gameDir },
+    nativeContext("native-unauth", { toolInstall: false, fetchImpl: releaseFetch(nativeZip("una", { builtFor: INSTALL_ASSET }), unauthorizedCalls) }),
+  );
+  assert.equal(unauthorized.ok, true, unauthorized.error?.message);
+  assert.equal(unauthorized.data.native.native, "not_authorized");
+  assert.equal(fs.existsSync(unauthorizedGame.dll), false);
+  assert.notEqual(fs.readFileSync(unauthorizedGame.lua, "utf8"), "-- old main\n");
+  assert.deepEqual(unauthorizedCalls, [], "without toolInstall nothing is downloaded");
+});
+
+test("a failed download reports unavailable with the message", async () => {
+  const game = nativeGame("native-unavailable");
+  const context = nativeContext("native-unavailable", { fetchImpl: async () => ({ ok: false, status: 503 }) });
+  const result = await deployNativePart(context, { path: game.ue4ss });
+  assert.equal(result.native, "unavailable");
+  assert.match(result.error, /503/);
+});
+
+test("a stale dll is removed on mismatch and appears in backup", async () => {
+  const game = nativeGame("native-stale", { stale: true });
+  const context = nativeContext("native-stale", { fetchImpl: releaseFetch(nativeZip("stale", { builtFor: OTHER_ASSET })) });
+  const result = await executeOperation("unreal.deploy_dumper", { gameDir: game.gameDir }, context);
+  assert.equal(result.data.native.native, "mismatch");
+  assert.equal(fs.existsSync(game.dll), false, "the stale dll is gone");
+  const entry = result.data.backup.find((item) => item.target.endsWith("main.dll"));
+  assert.ok(entry && fs.existsSync(entry.path), "the stale dll is in the backup list");
+  assert.equal(fs.readFileSync(entry.path, "utf8"), "OLD!");
+});
+
+test("deployHelper in unreal.dump reports the native part under helper.native", async () => {
+  const game = nativeGame("native-via-dump");
+  const context = nativeContext("native-via-dump", { fetchImpl: releaseFetch(nativeZip("via", { builtFor: INSTALL_ASSET })) });
+  const result = await executeOperation("unreal.dump", { gameDir: game.gameDir, deployHelper: true }, context);
+  assert.equal(result.ok, true, result.error?.message);
+  assert.equal(result.data.helper.native.native, "installed");
+  assert.equal(fs.readFileSync(game.dll, "utf8"), "NEW!");
+});
+
+// ---- collected runs ----------------------------------------------------------------------------
+
+function gameWithRuns(name) {
+  const gameDir = copyFixture("ue4ss-dumps", path.join(root, name));
+  const dumps = path.join(gameDir, "ue4ss", "Dumps");
+  const runFixture = fixturePath("unreal-run");
+  const place = (run, finished) => {
+    const target = path.join(dumps, run);
+    fs.cpSync(runFixture, target, { recursive: true });
+    const complete = JSON.parse(fs.readFileSync(path.join(target, "run_complete.json"), "utf8"));
+    complete.finished = finished;
+    fs.writeFileSync(path.join(target, "run_complete.json"), JSON.stringify(complete));
+  };
+  place("run-old", "2026-11-10T10:00:00Z");
+  place("run-new", "2026-11-12T10:00:00Z");
+  fs.cpSync(runFixture, path.join(dumps, "run-partial"), { recursive: true });
+  fs.rmSync(path.join(dumps, "run-partial", "run_complete.json"));
+  return { gameDir, ue4ss: path.join(gameDir, "ue4ss") };
+}
+
+test("listRuns returns runs newest first and marks the incomplete one", () => {
+  const { ue4ss } = gameWithRuns("runs-list");
+  const runs = listRuns(ue4ss);
+  assert.deepEqual(runs.filter((run) => run.complete).map((run) => run.name), ["run-new", "run-old"]);
+  const partial = runs.find((run) => run.name === "run-partial");
+  assert.equal(partial.complete, false);
+  assert.equal(partial.finished, null);
+  assert.equal(runs.find((run) => run.name === "run-new").finished, "2026-11-12T10:00:00Z");
+  assert.deepEqual(listRuns(path.join(root, "no-such-ue4ss")), []);
+});
+
+test("collect copies the newest complete run and writes unreal-objects.json", async () => {
+  const { gameDir, ue4ss } = gameWithRuns("runs-collect");
+  const workspace = workspaceAt("ws-runs-collect");
+  const direct = collectRun(ue4ss, workspace.root, {});
+  assert.equal(direct.run, "run-new");
+  assert.equal(direct.path, path.join(workspace.root, "dumps", "unreal", "runs", "run-new"));
+  assert.ok(direct.copied >= 5);
+  assert.ok(fs.existsSync(path.join(direct.path, "Reflection", "classes.json")));
+  assert.ok(fs.existsSync(path.join(direct.path, "run_complete.json")));
+  assert.equal(fs.existsSync(path.join(workspace.root, "dumps", "unreal", "runs", "run-old")), false);
+  const normalized = JSON.parse(fs.readFileSync(path.join(workspace.root, "dumps", "unreal-objects.json"), "utf8"));
+  assert.ok(normalized.classes.some((entry) => entry.name === "RunGameMode"));
+
+  const viaOperation = workspaceAt("ws-runs-collect-op");
+  const result = await executeOperation("unreal.dump", { gameDir, collect: true }, { workspace: viaOperation });
+  assert.equal(result.ok, true, result.error?.message);
+  assert.equal(result.data.collected.run, "run-new");
+  assert.ok(fs.existsSync(path.join(viaOperation.root, "dumps", "unreal", "runs", "run-new", "manifest.json")));
+  assert.ok(fs.existsSync(path.join(viaOperation.root, "dumps", "UE4SS_ObjectDump.txt")), "loose files are still collected");
+  const viaNormalized = JSON.parse(fs.readFileSync(path.join(viaOperation.root, "dumps", "unreal-objects.json"), "utf8"));
+  assert.ok(viaNormalized.classes.some((entry) => entry.name === "RunGameMode"));
+
+  const skip = collectRun(ue4ss, workspaceAt("ws-runs-nonormalize").root, { normalize: false });
+  assert.equal(skip.dump, null);
+});
+
+test("an incomplete run is refused", () => {
+  const { ue4ss } = gameWithRuns("runs-incomplete");
+  const workspace = workspaceAt("ws-runs-incomplete");
+  assert.throws(() => collectRun(ue4ss, workspace.root, { run: "run-partial" }), (error) => error.code === "GMF-E-PLAN-001" && /incomplete/.test(error.message));
+  assert.equal(fs.existsSync(path.join(workspace.root, "dumps")), false, "nothing is written");
+  assert.throws(() => collectRun(ue4ss, workspace.root, { run: "no-such-run" }), (error) => error.code === "GMF-E-PLAN-001");
 });
