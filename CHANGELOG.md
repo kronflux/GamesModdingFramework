@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Unreal first dump
+
+- GmfDumper is a full dumper mod with a Lua part and a C++ part, ported from OmniDumper commit 42ea496. It runs by itself once the game reaches its menu, holds input, writes one run folder `<ue4ss>/Dumps/<Game>-<engine>-<timestamp>/` with `manifest.json` and, last, `run_complete.json`, and closes the game. The console command is `gmfdump [full|quick|list|help|<step> ...]`; options and the key bind are in `Mods/GmfDumper/config.lua`.
+- New operations: `unreal.run_dump` (needs `gameWrite` and `launchGame`; status `complete`, `empty`, `crashed`, `exited` or `running`; never stops the game), `unreal.verify_dump`, `unreal.read_containers` and `unreal.build_docs`. `unreal.deploy_dumper` also installs the native part and reports `native` as `installed`, `mismatch`, `unknown`, `unavailable` or `not_authorized`. `unreal.setup_ue4ss` writes `gmf-install.json` with the installed UE4SS release. `unreal.dump` with `collect=true` collects the newest complete run into `dumps/unreal/runs/<run>/`.
+- The native part is built by `.github/workflows/gmfdumper.yml` and published as the rolling release `gmfdumper-latest`. The workflow rebuilds when the `experimental-latest` UE4SS asset or `native/gmfdumper` changes.
+- A Node docs builder turns a run into Markdown pages under `gamedocs/`; start at `gamedocs/overview.md`. The skill `unreal-first-dump` and the knowledge notes `unreal.gamedocs`, `unreal.gmfdumper.native`, `unreal.asset-export` and `unreal.blueprint-mods.suzie` describe the flow.
+- The pre-write hook judges loader-looking file names only inside the workspace, and guards `gamedocs/` like `dumps/`. The session start message points at `gamedocs/overview.md` when it exists.
+- Removed: the old GmfDumper wrapper and its `GmfDumper_report.txt`.
+- Not included: a dump of the engine's console variable list. UE4SS at the pinned build does not expose the console manager.
+
 ## 0.1.0
 
 First public release.

@@ -23,7 +23,9 @@ mod code and you do not execute a plan.
    unknowns and evidence.
 4. Search the knowledge base for anything the profile leaves open.
 5. Use read-only analysis operations on an existing dump when one is present.
-6. Do not write inside the game folder and do not install a tool.
+6. For an Unreal game whose workspace has no `gamedocs/overview.md`, recommend
+   the `unreal-first-dump` skill as the next step. Do not run it yourself.
+7. Do not write inside the game folder and do not install a tool.
 
 ## Handoff
 

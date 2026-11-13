@@ -15,6 +15,10 @@ The per-artifact catalog, native keybinds and the mod-goal to dump mapping are i
 A dump is a snapshot of the game build that produced it. Record that build
 beside the dump.
 
+A game's first dump runs GmfDumper once and builds Markdown pages from it: load
+the skill `unreal-first-dump`, then start reading at `gamedocs/overview.md`
+(`unreal.gamedocs`). The sections below apply to a single artifact.
+
 ## Kinds
 
 - Object dump: every live UObject path, class and outer. UE4SS writes

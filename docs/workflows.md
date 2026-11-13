@@ -47,14 +47,26 @@ The loader and backend are independent. Detect the loader from the game folder; 
 
 ## Unreal
 
-1. `unreal.setup_ue4ss` with a soft-gate authorization.
-2. `unreal.dump` prepares the dump layout and collects existing artifacts. With `deployHelper=true` it deploys the GmfDumper mod under a `gameWrite` gate (`unreal.deploy_dumper`), which runs the native UE4SS dumpers from one console command or key. With `collect=true` it copies the object dump, usmap, headers and report into `dumps/` and writes `dumps/unreal-objects.json`.
-3. `analyze.objects`, `analyze.classes`, `analyze.entrypoints` over the normalized dump.
-4. `unreal.scaffold` for Lua (minimal or structured, with `features` and `helpers`), C++ or pak.
-5. `unreal.lua_check` after every Lua edit; `unreal.build` for C++.
-6. `unreal.deploy`, `unreal.validate`, `unreal.package`.
-7. `unreal.crash_stack` on a UE4SS crash log; `unreal.pe_analyze`, `unreal.aob_emit` and `unreal.aob_verify` when reflection does not expose a target.
-8. `unreal.extract_assets`, `unreal.inspect_asset`, `unreal.stage_asset`, `unreal.pack_mod`, then `unreal.deploy --input type=pak`.
+First dump of a game (the `unreal-first-dump` skill):
+
+1. `unreal.setup_ue4ss` with `toolInstall` and `gameWrite` authorizations. It installs UE4SS and writes `<ue4ss>/gmf-install.json` with the installed release.
+2. `unreal.deploy_dumper` with a `gameWrite` authorization. It copies the GmfDumper mod into the game and merges its settings keys. With a `toolInstall` authorization it also installs the mod's native part when it matches the installed UE4SS; the result's `native` is `installed`, `mismatch`, `unknown`, `unavailable` or `not_authorized`.
+3. `unreal.run_dump` with `gameWrite` and `launchGame` authorizations. It starts the game once, waits for GmfDumper's run and returns `status` `complete`, `empty`, `crashed`, `exited` or `running`. It never stops the game; GmfDumper closes it when the run ends. A user can start the game instead and run `unreal.dump --input collect=true` afterwards.
+4. `unreal.dump --input collect=true` collects the newest complete run into `dumps/unreal/runs/<run>/` and writes `dumps/unreal-objects.json`. `unreal.run_dump` does this itself on `complete`.
+5. `unreal.verify_dump` checks the run against its `manifest.json` and `run_complete.json`.
+6. `unreal.read_containers` copies the `.ini`, `.locres`, `.uplugin` and `.uproject` entries out of the game's paks into `extracted/unreal/text/`.
+7. `unreal.build_docs` writes Markdown pages into `gamedocs/`. Read `gamedocs/overview.md` first.
+
+Dump and docs output is game content and is never committed.
+
+Mod work:
+
+1. `analyze.objects`, `analyze.classes`, `analyze.entrypoints` over the normalized dump, after the `gamedocs/` pages.
+2. `unreal.scaffold` for Lua (minimal or structured, with `features` and `helpers`), C++ or pak.
+3. `unreal.lua_check` after every Lua edit; `unreal.build` for C++.
+4. `unreal.deploy`, `unreal.validate`, `unreal.package`.
+5. `unreal.crash_stack` on a UE4SS crash log; `unreal.pe_analyze`, `unreal.aob_emit` and `unreal.aob_verify` when reflection does not expose a target.
+6. `unreal.extract_assets`, `unreal.inspect_asset`, `unreal.stage_asset`, `unreal.pack_mod`, then `unreal.deploy --input type=pak`.
 
 The UE version may be unknown until the game runs with UE4SS or a PatternSleuth log is read. Do not guess it.
 

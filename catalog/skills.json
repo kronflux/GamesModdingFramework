@@ -285,7 +285,7 @@
     {
       "id": "unreal-dumping",
       "name": "unreal-dumping",
-      "summary": "Use when a mod needs game-derived data first, such as an object dump, usmap, header dump or static mesh dump.",
+      "summary": "Use to produce one dump artifact or to dump an Unreal game again after an update, such as an object dump, usmap, header dump or one GmfDumper step.",
       "path": "skills/unreal-dumping/SKILL.md",
       "operations": [
         "unreal.dump",
@@ -314,7 +314,9 @@
       ],
       "knowledge": [
         "unreal.dumps",
-        "unreal.dumps.artifacts"
+        "unreal.dumps.artifacts",
+        "unreal.gamedocs",
+        "unreal.gmfdumper.native"
       ]
     },
     {

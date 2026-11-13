@@ -30,7 +30,8 @@ or when a plan depends on an unverified engine, loader or runtime fact.
    `analyze.entrypoints`, `analyze.references`.
 
 Engine skill next: for Unity targets load unity-harmony (and unity-il2cpp for
-IL2CPP); for Unreal load unreal-dumping then unreal-object-model.
+IL2CPP); for Unreal load unreal-first-dump when the workspace has no
+`gamedocs/overview.md`, otherwise unreal-object-model.
 
 ## Evidence
 

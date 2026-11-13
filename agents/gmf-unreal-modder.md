@@ -19,11 +19,13 @@ failure and hand back the evidence.
 
 1. Confirm the UE version, the shipping executable and the UE4SS state from the
    profile.
-2. Dump the object model before choosing a target: `unreal.deploy_dumper` to
-   install the helper (a game write), then `unreal.dump` and
-   `unreal.normalize_dump`. Load unreal-dumping and unreal-object-model.
-3. Find the UObject path, UClass and UFunction in the dump. Record the dump path
-   and the game build as evidence.
+2. Read `gamedocs/overview.md` and the pages it links before the raw object
+   dump (`gmf knowledge show unreal.gamedocs`). Only when `gamedocs/` does not
+   exist, use `unreal.deploy_dumper` (a game write) and `unreal.dump`, then
+   `unreal.normalize_dump`, or load unreal-first-dump. Load unreal-dumping and
+   unreal-object-model.
+3. Find the UObject path, UClass and UFunction in the docs or the dump. Record
+   the docs or dump path and the game build as evidence.
 4. Scaffold the mod type the plan names. For Lua, load unreal-ue4ss-lua and keep
    `scripts/main.lua` and `enabled.txt`. For C++, load unreal-ue4ss-cpp and
    build against the UE4SS SDK version that matches the install. For a failed

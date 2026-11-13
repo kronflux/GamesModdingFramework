@@ -14,8 +14,9 @@ how to find a class, function or property in a dump.
 
 1. Read the model: `gmf knowledge show unreal.object-model`, then how reflection
    exposes properties and functions: `gmf knowledge show unreal.reflection`.
-2. Get a dump if none exists (load unreal-dumping):
-   `gmf run unreal.dump --input gameDir=<game folder>`.
+2. Read `gamedocs/overview.md` when it exists (`unreal.gamedocs`). If there is
+   no dump, load unreal-first-dump; for one artifact load unreal-dumping and
+   run `gmf run unreal.dump --input gameDir=<game folder> --input collect=true`.
 3. Normalize it: `gmf run unreal.normalize_dump`.
 4. Find the target: `gmf run analyze.objects --input query=<name>`,
    `gmf run analyze.classes --input query=<name>` and

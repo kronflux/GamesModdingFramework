@@ -19,9 +19,10 @@ and the findings that matter to the plan.
 1. Read the backend and the loader from the profile.
 2. Run the engine decompile operation into the workspace `decompiled/` folder,
    or the dump operation into `dumps/`. For Unity use `unity.decompile` then
-   `unity.normalize_dump`; for Unreal use `unreal.deploy_dumper` (a game write),
-   `unreal.dump` then `unreal.normalize_dump`. For a native executable use
-   `unreal.pe_analyze`; hash inputs with `generic.hash`. Other tools run through
+   `unity.normalize_dump`; for Unreal load unreal-first-dump when
+   `gamedocs/overview.md` is missing (it needs `gameWrite` and `launchGame`),
+   otherwise use `unreal.dump` with `collect=true` then `unreal.normalize_dump`.
+   For a native executable use `unreal.pe_analyze`; hash inputs with `generic.hash`. Other tools run through
    `generic.run_tool`.
 3. Confirm the output exists and record its count and path. Load the engine
    skill that fits: unity-harmony, unity-il2cpp, unreal-dumping or

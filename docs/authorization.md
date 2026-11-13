@@ -22,6 +22,8 @@ The model may also pass `--authorized <effect>[,<effect>] --source "<quoted inst
 
 Every soft effect an operation declares needs its own authorization, and a `--authorized` flag counts only together with `--source`. `unreal.setup_ue4ss` declares `toolInstall`, `network` and `gameWrite`, so a `toolInstall` authorization alone is refused and the error names the missing effect. One implication is built in: a `toolInstall` authorization covers `network`, because installing a tool is a download. Nothing covers `gameWrite`.
 
+`unreal.run_dump` declares `gameWrite` and `launchGame`: it writes `config.lua` of the dumper mod and starts the game, so it needs both authorizations. It never stops the game. `unreal.deploy_dumper` declares `gameWrite`; its handler also checks `toolInstall` before it downloads and installs the dumper's native part, and reports `native: "not_authorized"` when that authorization is missing, while the Lua part is still deployed.
+
 The executor checks the gate before every handler, reading an explicit plan, else the workspace's `gmf.plan.json`, plus the `--authorized` flags. Handlers that check again use the same reader, so an authorization recorded in the plan file is enough everywhere.
 
 ## Hard gates and anti-cheat

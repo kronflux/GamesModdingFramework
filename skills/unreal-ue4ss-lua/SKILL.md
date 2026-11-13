@@ -28,7 +28,8 @@ and install layout are in the knowledge notes.
 7. Back up with `gmf run generic.backup`, deploy with
    `gmf run unreal.deploy --input modDir=<mod folder>`, then
    `gmf run unreal.validate --input modDir=<mod folder>`.
-8. Take hook and object paths from a dump (load unreal-dumping), not memory.
+8. Take hook and object paths from `gamedocs/` or a dump (load
+   unreal-first-dump or unreal-dumping), not memory.
 
 ## Evidence
 

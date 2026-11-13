@@ -31,7 +31,9 @@ destructive action.
    the user's explicit approval for that exact operation and target.
 
 Engine skill next: for asset writes load unity-assets or unreal-pak-blueprint;
-for Unreal helper or UE4SS installs load unreal-dumping or unreal-ue4ss-lua.
+for Unreal helper or UE4SS installs load unreal-first-dump, unreal-dumping or
+unreal-ue4ss-lua. `unreal.run_dump` starts the game and needs both `gameWrite`
+and `launchGame`.
 
 ## Evidence
 
