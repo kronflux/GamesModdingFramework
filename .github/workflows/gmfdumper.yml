@@ -1,0 +1,142 @@
+name: GmfDumper native build
+
+# Keeps exactly one current build of the native part of GmfDumper: release "gmfdumper-latest"
+# with GmfDumper-native.zip and build.json, built against the latest experimental UE4SS.
+# The DLL links UE4SS's C++ interface, so it is rebuilt whenever UE4SS publishes a new
+# experimental build or native/gmfdumper changes. Old workflow runs are deleted after 7 days.
+#
+# Needs the repository secret UEPSEUDO_TOKEN: a token that can read Re-UE4SS/UEPseudo, the private
+# submodule every UE4SS build needs.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "native/gmfdumper/**"
+      - "scripts/build-dumper.mjs"
+      - ".github/workflows/gmfdumper.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: gmfdumper-native
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  RELEASE_TAG: gmfdumper-latest
+  UE4SS_REPO: UE4SS-RE/RE-UE4SS
+  UE4SS_TAG: experimental-latest
+  ISSUE_TITLE: GmfDumper build failed
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Find the latest experimental UE4SS build
+        id: ue4ss
+        run: |
+          gh api "repos/$UE4SS_REPO/releases/tags/$UE4SS_TAG" > ue4ss-release.json
+          asset=$(jq -r '[.assets[] | select(.name | test("^UE4SS_v.*\\.zip$"))][0].name' ue4ss-release.json)
+          digest=$(jq -r '[.assets[] | select(.name | test("^UE4SS_v.*\\.zip$"))][0].digest // ""' ue4ss-release.json)
+          short=$(echo "$asset" | sed -E 's/.*-g([0-9a-f]+)\.zip$/\1/')
+          if [ -z "$asset" ] || [ "$asset" = "null" ] || [ "$short" = "$asset" ]; then
+            echo "No UE4SS_v*.zip asset with a commit suffix on $UE4SS_TAG"; exit 1
+          fi
+          commit=$(gh api "repos/$UE4SS_REPO/commits/$short" --jq .sha)
+          source_hash=$(git rev-parse HEAD:native/gmfdumper)
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "source_hash=$source_hash" >> "$GITHUB_OUTPUT"
+          echo "UE4SS asset $asset, commit $commit, native source $source_hash"
+
+      - name: Compare with the current release
+        id: check
+        run: |
+          build=true
+          if gh release download "$RELEASE_TAG" --pattern build.json --dir previous 2>/dev/null; then
+            have_asset=$(jq -r '.ue4ss_asset // ""' previous/build.json)
+            have_source=$(jq -r '.source_hash // ""' previous/build.json)
+            if [ "$have_asset" = "${{ steps.ue4ss.outputs.asset }}" ] && [ "$have_source" = "${{ steps.ue4ss.outputs.source_hash }}" ]; then
+              build=false
+            fi
+          fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          if [ "$build" = "false" ]; then echo "up to date"; fi
+
+      - name: Check out UE4SS at the commit of that build
+        id: checkout_ue4ss
+        if: steps.check.outputs.build == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.UE4SS_REPO }}
+          ref: ${{ steps.ue4ss.outputs.commit }}
+          path: ue4ss-src
+          submodules: recursive
+          token: ${{ secrets.UEPSEUDO_TOKEN }}
+
+      - name: Build the native part
+        id: native
+        if: steps.check.outputs.build == 'true'
+        run: |
+          node scripts/build-dumper.mjs \
+            --ue4ss "$GITHUB_WORKSPACE/ue4ss-src" \
+            --out "$RUNNER_TEMP/gmfdumper-dist" \
+            --build-dir "$RUNNER_TEMP/gmfdumper-build" \
+            --ue4ss-asset "${{ steps.ue4ss.outputs.asset }}" \
+            --ue4ss-digest "${{ steps.ue4ss.outputs.digest }}"
+
+      - name: Replace the release assets
+        id: publish
+        if: steps.check.outputs.build == 'true'
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --prerelease --title "GmfDumper native part (rolling)" \
+              --notes "The C++ part of GmfDumper, built against the latest experimental UE4SS. Replaced by a workflow; build.json names the UE4SS build it matches. gmf downloads it at deploy time."
+          fi
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/gmfdumper-dist/GmfDumper-native.zip" "$RUNNER_TEMP/gmfdumper-dist/build.json" --clobber
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | while read -r name; do
+            if [ "$name" != "GmfDumper-native.zip" ] && [ "$name" != "build.json" ]; then
+              gh release delete-asset "$RELEASE_TAG" "$name" --yes
+            fi
+          done
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name'
+
+      - name: Delete runs of this workflow older than 7 days
+        if: always()
+        run: |
+          cutoff=$(node -e "console.log(new Date(Date.now() - 7 * 86400000).toISOString())")
+          gh run list --workflow gmfdumper.yml --limit 200 --json databaseId,createdAt,status \
+            --jq ".[] | select(.status == \"completed\" and .createdAt < \"$cutoff\") | .databaseId" |
+            while read -r id; do gh run delete "$id" || true; done
+
+      - name: Report a failed build
+        if: failure() && steps.check.outputs.build == 'true'
+        run: |
+          step="unknown"
+          if [ "${{ steps.checkout_ue4ss.outcome }}" = "failure" ]; then step="check out UE4SS (is UEPSEUDO_TOKEN set and valid?)"; fi
+          if [ "${{ steps.native.outcome }}" = "failure" ]; then step="build the native part"; fi
+          if [ "${{ steps.publish.outcome }}" = "failure" ]; then step="replace the release assets"; fi
+          body="The step \"$step\" failed for UE4SS asset ${{ steps.ue4ss.outputs.asset }}. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. The release keeps its previous assets."
+          number=$(gh issue list --state open --search "\"$ISSUE_TITLE\" in:title" --json number,title --jq "[.[] | select(.title == \"$ISSUE_TITLE\")][0].number // empty")
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$ISSUE_TITLE" --body "$body"
+          fi
