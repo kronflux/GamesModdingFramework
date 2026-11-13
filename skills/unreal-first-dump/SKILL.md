@@ -1,7 +1,7 @@
 ---
 name: unreal-first-dump
 description: Use as the first step on an Unreal Engine game, before any mod work, to install UE4SS, run GmfDumper once and collect a verified dump of the game.
-operations: [unreal.setup_ue4ss, unreal.deploy_dumper, unreal.run_dump, unreal.dump, unreal.verify_dump]
+operations: [unreal.setup_ue4ss, unreal.deploy_dumper, unreal.run_dump, unreal.dump, unreal.verify_dump, unreal.read_containers]
 knowledge: [unreal.dumps, unreal.dumps.artifacts]
 ---
 

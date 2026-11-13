@@ -308,7 +308,8 @@
         "unreal.deploy_dumper",
         "unreal.run_dump",
         "unreal.dump",
-        "unreal.verify_dump"
+        "unreal.verify_dump",
+        "unreal.read_containers"
       ],
       "knowledge": [
         "unreal.dumps",

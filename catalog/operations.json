@@ -2415,6 +2415,53 @@
       "docs": []
     },
     {
+      "id": "unreal.read_containers",
+      "title": "Read text files from the game's paks",
+      "summary": "List each .pak in Content/Paks with repak and extract only the .ini, .locres, .uplugin and .uproject entries into extracted/unreal/text/<pak>/, for the docs builder. Paks in ~mods and LogicMods are skipped.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "gameDir": {
+            "type": "string"
+          },
+          "aesKey": {
+            "type": "string",
+            "description": "256-bit AES key for an encrypted game, as 0x-hex or base64. Also read from GMF_AES_KEY or the workspace gmf.local.json \"aesKey\". Never recorded."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "textDir": {
+            "type": "string"
+          },
+          "paks": {
+            "type": "array"
+          },
+          "none": {
+            "type": "array"
+          },
+          "refused": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [
+        "repak"
+      ],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-first-dump"
+    },
+    {
       "id": "unreal.remove_mod",
       "title": "Remove a deployed UE4SS mod",
       "summary": "Back up and remove a deployed mod: a UE4SS mod folder under ue4ss/Mods, or a pak mod's <name>_P files in Content/Paks/~mods or LogicMods. Needs a gameWrite authorization.",
