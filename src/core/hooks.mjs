@@ -3,7 +3,7 @@ import path from "node:path";
 import { readJson, readWorkspace, writeJson } from "./workspace.mjs";
 import { isInside } from "./fsutil.mjs";
 
-const GUARDED_DIRS = ["decompiled", "extracted", "dumps"];
+const GUARDED_DIRS = ["decompiled", "extracted", "dumps", "gamedocs"];
 const GUARDED_NAMES = /^(BepInEx|MelonLoader|UE4SS|GameAssembly|global-metadata|Assembly-CSharp)/i;
 const GUARDED_EXTENSIONS = /\.(dll|pak|usmap)$/i;
 const VALIDATE_RECORD = path.join(".gmf", "last-validate.json");
@@ -45,6 +45,9 @@ function sessionStart(workspace, context) {
     `workspace: ${workspace.root}`,
     `unknowns: ${Array.isArray(profile.unknowns) ? profile.unknowns.length : 0}`,
   ];
+  if (fs.existsSync(path.join(workspace.root, "gamedocs", "overview.md"))) {
+    lines.push("docs: gamedocs/overview.md (read it first)");
+  }
   return { stdout: `${lines.join("\n")}\n` };
 }
 
@@ -67,7 +70,9 @@ function preWrite(workspace, payload) {
       return block(`${resolved} is under ${dir}/, which holds game-derived content. Keep edits in mods/ and regenerate ${dir}/ with its operation.`);
     }
   }
-  if (GUARDED_NAMES.test(base) || GUARDED_EXTENSIONS.test(base)) {
+  // Names are judged only inside the workspace. A file elsewhere, such as a template in another
+  // repository, is not gmf's to guard; the game folder is covered above.
+  if (isUnder(workspace.root, resolved) && (GUARDED_NAMES.test(base) || GUARDED_EXTENSIONS.test(base))) {
     return block(`${base} looks like a game or loader binary. Do not write it by hand; build or deploy it through a catalog operation.`);
   }
   return EMPTY;

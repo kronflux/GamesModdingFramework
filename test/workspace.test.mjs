@@ -65,7 +65,7 @@ test("init writes AGENTS.md, CLAUDE.md, .gitignore and mods and skips them on re
   assert.deepEqual(first.skipped, []);
   assert.equal(fs.readFileSync(path.join(wsFull, "CLAUDE.md"), "utf8"), "@AGENTS.md\n");
   const ignore = fs.readFileSync(path.join(wsFull, ".gitignore"), "utf8");
-  for (const entry of ["decompiled/", "extracted/", "dumps/", "logs/", "backups/", ".gmf/", "gmf.local.json", "gmf.profile.json", "gmf.plan.json"]) {
+  for (const entry of ["decompiled/", "extracted/", "dumps/", "gamedocs/", "logs/", "backups/", ".gmf/", "gmf.local.json", "gmf.profile.json", "gmf.plan.json"]) {
     assert.ok(ignore.split(/\r?\n/).includes(entry), `.gitignore lists ${entry}`);
   }
   const agents = fs.readFileSync(path.join(wsFull, "AGENTS.md"), "utf8");

@@ -1,6 +1,7 @@
 decompiled/
 extracted/
 dumps/
+gamedocs/
 logs/
 backups/
 .gmf/

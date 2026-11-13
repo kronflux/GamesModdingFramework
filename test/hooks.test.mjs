@@ -171,3 +171,40 @@ test("post-bash records only a real gmf validate invocation", () => {
     cleanup(ws);
   }
 });
+
+test("pre-write guards gamedocs, which holds game-derived docs", () => {
+  const ws = makeWorkspace();
+  try {
+    const result = handleHook("pre-write", { tool_input: { file_path: path.join(ws.root, "gamedocs", "overview.md") } }, ws.context);
+    assert.equal(result.decision, "block");
+    assert.match(result.reason, /gamedocs/);
+  } finally {
+    cleanup(ws);
+  }
+});
+
+test("pre-write judges names only inside the workspace: a loader-named file elsewhere passes", () => {
+  const ws = makeWorkspace();
+  const elsewhere = fs.mkdtempSync(path.join(os.tmpdir(), "gmf-hooks-other-"));
+  try {
+    const outside = handleHook("pre-write", { tool_input: { file_path: path.join(elsewhere, "UE4SS-settings.dumpers.ini") } }, ws.context);
+    assert.equal(outside.decision, undefined, "a file outside the workspace and the game folder is not gmf's to guard");
+    const inside = handleHook("pre-write", { tool_input: { file_path: path.join(ws.root, "mods", "UE4SS-settings.ini") } }, ws.context);
+    assert.equal(inside.decision, "block");
+  } finally {
+    cleanup(ws);
+    fs.rmSync(elsewhere, { recursive: true, force: true });
+  }
+});
+
+test("session-start points at gamedocs/overview.md when the docs are built", () => {
+  const ws = makeWorkspace();
+  try {
+    assert.doesNotMatch(handleHook("session-start", {}, ws.context).stdout, /gamedocs/);
+    fs.mkdirSync(path.join(ws.root, "gamedocs"));
+    fs.writeFileSync(path.join(ws.root, "gamedocs", "overview.md"), "# synthetic\n");
+    assert.match(handleHook("session-start", {}, ws.context).stdout, /docs: gamedocs\/overview\.md \(read it first\)/);
+  } finally {
+    cleanup(ws);
+  }
+});
