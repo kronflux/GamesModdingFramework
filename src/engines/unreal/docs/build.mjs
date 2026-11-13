@@ -131,7 +131,9 @@ export class Docs {
     this.folders = new Map();    // folder -> [[title, file, summary]]
     this.section = null;         // the section whose documents are being added
     this.pages = new Map();      // section -> documents added
-    this.splitOptions = {};
+    // Each part of a split document links to the next. `linkNext: false` gives the parts the
+    // Python builder wrote, for comparisons against its output.
+    this.splitOptions = { linkNext: options.linkNext ?? true };
     this.manifest = or(this.load("manifest.json"), {});
     if (!schemaAccepted(get(this.manifest, "schema"))) {
       throw new Error(`manifest.json has schema ${pyStr(get(this.manifest, "schema"))}, not a dumper schema`);
