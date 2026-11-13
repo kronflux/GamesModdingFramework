@@ -1869,6 +1869,59 @@
       "docs": []
     },
     {
+      "id": "unreal.build_docs",
+      "title": "Build the game docs from a dump run",
+      "summary": "Write Markdown docs for a collected GmfDumper run into gamedocs/ inside the workspace: classes, structs, enums, data, Blueprint scripts, class defaults, levels, assets, and the settings, localization and plugin pages when unreal.read_containers was run. Start reading at gamedocs/overview.md. An existing folder is replaced only when it is an earlier docs build; a failed build keeps the previous docs. Sections without input are listed in README.md and in missing.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "string",
+            "description": "Run folder name under dumps/unreal/runs, or an absolute path. Default: the newest run by name."
+          },
+          "outputDir": {
+            "type": "string",
+            "description": "Folder inside the workspace. Default: gamedocs."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "outputDir": {
+            "type": "string"
+          },
+          "run": {
+            "type": "string"
+          },
+          "files": {
+            "type": "integer"
+          },
+          "bytes": {
+            "type": "integer"
+          },
+          "sections": {
+            "type": "array"
+          },
+          "missing": {
+            "type": "array"
+          }
+        }
+      },
+      "effects": [
+        "read",
+        "workspaceWrite"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-first-dump",
+      "docs": []
+    },
+    {
       "id": "unreal.crash_stack",
       "title": "Read a UE4SS crash stack",
       "summary": "Parse a crash log or cdb stack text into frames, the faulting module and the nearest mod file.",

@@ -72,7 +72,7 @@ function runsDir(context) {
   return path.join(workspaceRoot(context), "dumps", "unreal", "runs");
 }
 
-function resolveRun(input, context) {
+export function resolveRun(input, context) {
   const base = runsDir(context);
   if (input) {
     const dir = path.isAbsolute(input) ? input : path.join(base, input);

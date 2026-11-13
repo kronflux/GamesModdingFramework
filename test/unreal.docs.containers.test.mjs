@@ -89,9 +89,10 @@ test("containerPages turns ini, locres and uplugin files into pages (AC-9)", () 
   );
   // Same path in a later pak wins.
   write(path.join(textDir, "Zeta", "Engine", "Config", "Base.ini"), "[ConsoleVariables]\nr.Foo=2\n");
-  write(path.join(textDir, "Game", "Engine", "Content", "Localization", "Engine", "en", "Engine.locres"), writeLocres(NAMESPACES, 3));
-  write(path.join(textDir, "Game", "Engine", "Content", "Localization", "Engine", "fr", "Engine.locres"), writeLocres([{ name: "Menu", entries: [{ key: "Play", text: "Jouer" }] }], 2));
-  write(path.join(textDir, "Zeta", "Engine", "Content", "Localization", "Engine", "en", "More.locres"), writeLocres([{ name: "Menu", entries: [{ key: "Extra", text: "More" }] }], 3));
+  write(path.join(textDir, "Game", "Demo", "Content", "Localization", "Game", "en", "Game.locres"), writeLocres(NAMESPACES, 3));
+  write(path.join(textDir, "Game", "Engine", "Content", "Localization", "Engine", "en", "Engine.locres"), writeLocres([{ name: "EngineOnly", entries: [{ key: "K", text: "T" }] }], 3));
+  write(path.join(textDir, "Game", "Demo", "Content", "Localization", "Game", "fr", "Game.locres"), writeLocres([{ name: "Menu", entries: [{ key: "Play", text: "Jouer" }] }], 2));
+  write(path.join(textDir, "Zeta", "Demo", "Content", "Localization", "Game", "en", "More.locres"), writeLocres([{ name: "Menu", entries: [{ key: "Extra", text: "More" }] }], 3));
   write(
     path.join(textDir, "Game", "Engine", "Plugins", "2D", "Paper2D", "Paper2D.uplugin"),
     JSON.stringify({ FriendlyName: "Paper 2D", VersionName: "1.0", Category: "2D", EnabledByDefault: true, Description: "2D | sprites", Modules: [{ Name: "Paper2D" }, { Name: "Paper2DEditor" }] }),
@@ -109,7 +110,8 @@ test("containerPages turns ini, locres and uplugin files into pages (AC-9)", () 
   const before = fs.readdirSync(textDir, { recursive: true }).sort();
   const result = containerPages(textDir);
   assert.deepEqual(fs.readdirSync(textDir, { recursive: true }).sort(), before, "writes nothing");
-  assert.deepEqual(result.counts, { ini: 3, locres: 3, uplugin: 3 });
+  assert.deepEqual(result.counts, { ini: 3, locres: 3, uplugin: 3, engineLocres: 1 });
+  assert.equal(result.pages.some((page) => page.file.includes("EngineOnly")), false, "engine localization is left out");
   const byFile = new Map(result.pages.map((page) => [page.file, page]));
 
   const base = byFile.get("settings/Engine__Config__Base.md");
@@ -155,5 +157,5 @@ test("containerPages on an empty folder returns no pages", () => {
   fs.mkdirSync(dir);
   const empty = containerPages(dir);
   assert.deepEqual(empty.pages, []);
-  assert.deepEqual(empty.counts, { ini: 0, locres: 0, uplugin: 0 });
+  assert.deepEqual(empty.counts, { ini: 0, locres: 0, uplugin: 0, engineLocres: 0 });
 });

@@ -101,9 +101,12 @@ function pluginsPage(plugins, projects) {
 /**
  * Build the settings, localization and plugin pages from `textDir`.
  * Returns the pages and how many .ini, .locres and .uplugin files were read.
+ * The engine's own localization (entries under Engine/) is left out unless
+ * `engineLocalization` is true: it is thousands of namespaces of editor and engine text
+ * per language and says nothing about the game. `counts.engineLocres` counts those files.
  */
-export function containerPages(textDir) {
-  const counts = { ini: 0, locres: 0, uplugin: 0 };
+export function containerPages(textDir, { engineLocalization = false } = {}) {
+  const counts = { ini: 0, locres: 0, uplugin: 0, engineLocres: 0 };
   const pages = [];
   const skipped = [];
   const iniByName = new Map();
@@ -130,6 +133,10 @@ export function containerPages(textDir) {
         // A later pak, in name order, replaces an earlier pak's file of the same path.
         iniByName.set(name, { rel, pak, file });
       } else if (lower.endsWith(".locres")) {
+        if (!engineLocalization && lower.startsWith("engine/")) {
+          counts.engineLocres += 1;
+          continue;
+        }
         counts.locres += 1;
         let parsed;
         try {

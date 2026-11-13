@@ -50,8 +50,10 @@ export function write(docs) {
     body.push(`## ${title}\n\n` + lines.join("\n") + "\n");
   }
   const counts = COUNTED.map(([word, ancestor]) => `${game.filter((item) => chains.get(get(item, "path")).has(ancestor)).length} ${word}`);
+  // Without reflection data there is no classes folder to link to.
   body.push(`## Other kinds\n\nOf the ${game.length} game classes: ` + counts.join(", ")
-    + ". They are in [classes/](classes/_index.md), in folders that mirror the game's content paths.\n");
+    + (game.length ? ". They are in [classes/](classes/_index.md), in folders that mirror the game's content paths.\n"
+      : ". This run has no class data.\n"));
 
   const levels = getOr(or(docs.load("Levels/levels.json"), {}), "maps", []);
   if (truthy(levels)) {

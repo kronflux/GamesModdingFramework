@@ -8,6 +8,7 @@ import { normalizeOperation } from "./operations/normalize.mjs";
 import { verifyDumpOperation } from "./operations/verify_dump.mjs";
 import { runDumpOperation } from "./operations/run_dump.mjs";
 import { readContainersOperation } from "./operations/containers.mjs";
+import { buildDocsOperation } from "./operations/docs.mjs";
 import { scaffoldOperation } from "./operations/scaffold.mjs";
 import { buildOperation } from "./operations/build.mjs";
 import { deployOperation } from "./operations/deploy.mjs";
@@ -69,6 +70,7 @@ export const operations = [
   runDumpOperation,
   verifyDumpOperation,
   readContainersOperation,
+  buildDocsOperation,
   scaffoldOperation,
   buildOperation,
   deployOperation,

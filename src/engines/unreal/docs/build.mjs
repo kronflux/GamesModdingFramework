@@ -31,6 +31,8 @@ import * as levels from "./sections/levels.mjs";
 import * as tags from "./sections/tags.mjs";
 import * as assets from "./sections/assets.mjs";
 import * as overview from "./sections/overview.mjs";
+import * as assetValues from "./sections/asset_values.mjs";
+import { containerPages } from "./sections/containers.mjs";
 
 const SCHEMA_PREFIXES = ["omnidumper.", "gmfdumper."];
 const LINK = /\]\(([^)#]+)(?:#[^)]*)?\)/g;
@@ -57,11 +59,39 @@ export const SECTIONS = [
     name: "world", write: world.write, inputs: ["World/actors.json", "World/runtime.json", "World/map_tour.json"],
     steps: ["world_json", "runtime", "world_values", "map_tour"],
   },
+  { name: "asset_values", write: assetValues.write, inputs: ["Assets/asset_values.jsonl"], steps: ["asset_values"] },
   { name: "levels", write: levels.write, inputs: ["Levels/levels.json"], steps: ["levels_loaded"] },
   { name: "tags", write: tags.write, inputs: ["Names/gameplay_tags.txt"], steps: ["gameplay_tags"] },
   { name: "assets", write: assets.write, inputs: ["Assets/asset_registry.json"], steps: ["assets"] },
+  // Text read from the paks, not from the run: `missing` answers for it instead of `inputs`.
+  {
+    name: "containers", write: writeContainers, inputs: [], steps: [],
+    missing: (docs) => (docs.textDir && existsSync(docs.textDir) ? null : "containers not read; run unreal.read_containers"),
+  },
   { name: "overview", write: overview.write, inputs: [], steps: [] },
 ];
+
+const CONTAINER_SUMMARY = {
+  settings: (source) => `settings file ${source}`,
+  localization: (source) => `localized text from ${source}`,
+  plugins: () => "plugins of the game and the engine, and the project file",
+};
+
+/** The containers section: settings/, localization/ and plugins.md from the extracted pak text. */
+function writeContainers(docs) {
+  if (!docs.textDir || !existsSync(docs.textDir)) return;
+  const { pages, counts, skipped } = containerPages(docs.textDir);
+  for (const page of pages) {
+    // The page writer gives a whole page; its front matter is replaced by the builder's own.
+    const end = page.text.indexOf("\n---\n\n");
+    const source = /^source: (.*)$/m.exec(page.text.slice(0, end))?.[1];
+    const shown = source ? JSON.parse(source) : page.name;
+    docs.add(page.file, page.kind, page.name, null, CONTAINER_SUMMARY[page.kind]?.(shown) ?? page.kind, page.text.slice(end + 6),
+      [page.name], { source: shown });
+  }
+  docs.log(`containers: ${counts.ini} ini, ${counts.locres} locres (${counts.engineLocres} engine locres left out), `
+    + `${counts.uplugin} uplugin; ${skipped.length} unreadable`);
+}
 
 function isFile(path) {
   try {
@@ -93,6 +123,8 @@ export class Docs {
     this.run = runDir;
     this.out = outDir;
     this.log = options.log ?? (() => {});
+    this.textDir = options.textDir ?? null;  // extracted pak text, for the containers section
+    this.missing = [];                       // [{ name, reason }] of sections without input
     this.files = new Map();      // relative file -> text
     this.records = [];           // search records
     this.docOf = new Map();      // object path -> relative file
@@ -353,11 +385,15 @@ export class Docs {
     const v = (key) => pyStr(get(m, key));
     this.files.set("README.md",
       `# ${pyStr(getOr(m, "game", "Game"))} modding reference\n\n`
-      + `Generated from an OmniDumper run. Game executable ${v("game_exe_bytes")} bytes, link time `
+      + `Generated from a GmfDumper run. Game executable ${v("game_exe_bytes")} bytes, link time `
       + `${v("game_exe_link_time")}; engine ${v("engine_version")}; UE4SS ${v("ue4ss_version")}; `
       + `dumped on map \`${v("map")}\` at ${v("started")}.\n\n`
       + "This is game content. Do not commit or publish it.\n\n"
       + `## Sections\n\n${sections}\n\n`
+      + (this.missing.length
+        ? "## Missing sections\n\nThese parts have no input in this run, so their pages are absent.\n\n"
+          + this.missing.map((entry) => `- ${entry.name}: ${entry.reason}`).join("\n") + "\n\n"
+        : "")
       + "## How to find something\n\n"
       + "- [overview.md](overview.md) names the classes that run the game by role, the game mode of each map and the "
       + "classes with the most Blueprint logic. Start there.\n"
@@ -389,7 +425,13 @@ export class Docs {
       const started = Date.now();
       this.withSection(section.name, () => section.write(this));
       const entry = { name: section.name, pages: this.pages.get(section.name) ?? 0 };
-      if (section.inputs.length && !section.inputs.some((input) => this.exists(input))) entry.missing = this.missingReason(section);
+      if (section.missing) {
+        const reason = section.missing(this);
+        if (reason) entry.missing = reason;
+      } else if (section.inputs.length && !section.inputs.some((input) => this.exists(input))) {
+        entry.missing = this.missingReason(section);
+      }
+      if (entry.missing) this.missing.push({ name: entry.name, reason: entry.missing });
       sections.push(entry);
       this.log(`${section.name}: done in ${((Date.now() - started) / 1000).toFixed(1)} s${entry.missing ? ` (missing: ${entry.missing})` : ""}`);
     }
@@ -453,7 +495,8 @@ export class Docs {
 /**
  * Builds the docs of the run folder `runDir` into `outDir` (created when absent). It writes
  * into `outDir` only and checks nothing about it. `options.log` receives progress lines;
- * `options.textDir` is accepted for the container text sections and not read yet.
+ * `options.textDir` is the folder unreal.read_containers extracted pak text into
+ * (`<workspace>/extracted/unreal/text`); without it the containers section is reported missing.
  */
 export async function buildDocs(runDir, outDir, options = {}) {
   if (!existsSync(join(runDir, "manifest.json"))) throw new Error(`no manifest.json in ${runDir}`);

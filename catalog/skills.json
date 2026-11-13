@@ -309,7 +309,8 @@
         "unreal.run_dump",
         "unreal.dump",
         "unreal.verify_dump",
-        "unreal.read_containers"
+        "unreal.read_containers",
+        "unreal.build_docs"
       ],
       "knowledge": [
         "unreal.dumps",
