@@ -2722,6 +2722,51 @@
       "docs": []
     },
     {
+      "id": "unreal.verify_dump",
+      "title": "Verify a dump run against its manifest",
+      "summary": "Check a collected dump run: finished manifest, no failed steps, skipped steps explained, every listed file present with its recorded size, run_complete.json present, all levels dumped for the full profile. Prints PASS or one line per problem.",
+      "engine": "unreal",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "string",
+            "description": "Run folder name under dumps/unreal/runs, or an absolute path. Default: the newest run by name."
+          }
+        },
+        "required": []
+      },
+      "outputs": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "pass": {
+            "type": "boolean"
+          },
+          "problems": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "effects": [
+        "read"
+      ],
+      "requires": [],
+      "gates": [
+        "auto"
+      ],
+      "skill": "unreal-first-dump",
+      "docs": []
+    },
+    {
       "id": "verify.plan",
       "title": "Run the plan's verification steps",
       "summary": "Run every step's verify command that starts with gmf, record manual checks as such, and store the results under verification in the plan file.",

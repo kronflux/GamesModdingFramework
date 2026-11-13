@@ -164,9 +164,9 @@ test("a skill that references a missing knowledge id is rejected", () => {
   );
 });
 
-test("24 skills are discovered, every engine skill lists knowledge and operations, none exceeds 80 lines", () => {
+test("25 skills are discovered, every engine skill lists knowledge and operations, none exceeds 80 lines", () => {
   const skills = discoverSkills(repoRoot);
-  assert.equal(skills.length, 24);
+  assert.equal(skills.length, 25);
   for (const skill of skills) {
     if (/^(unity|unreal)-/.test(skill.name)) {
       assert.ok(skill.knowledge.length >= 1, `${skill.name} lists no knowledge`);
@@ -183,7 +183,7 @@ test("the repository skills and agents are generated and host-neutral", () => {
 
   const skillsDir = path.join(repoRoot, "skills");
   const skillNames = fs.readdirSync(skillsDir).sort();
-  assert.equal(skillNames.length, 24);
+  assert.equal(skillNames.length, 25);
 
   const agentsDir = path.join(repoRoot, "agents");
   const agentNames = fs.readdirSync(agentsDir).filter((name) => name.endsWith(".md")).sort();

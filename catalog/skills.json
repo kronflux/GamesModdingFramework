@@ -299,6 +299,22 @@
       ]
     },
     {
+      "id": "unreal-first-dump",
+      "name": "unreal-first-dump",
+      "summary": "Use as the first step on an Unreal Engine game, before any mod work, to install UE4SS, run GmfDumper once and collect a verified dump of the game.",
+      "path": "skills/unreal-first-dump/SKILL.md",
+      "operations": [
+        "unreal.setup_ue4ss",
+        "unreal.deploy_dumper",
+        "unreal.dump",
+        "unreal.verify_dump"
+      ],
+      "knowledge": [
+        "unreal.dumps",
+        "unreal.dumps.artifacts"
+      ]
+    },
+    {
       "id": "unreal-object-model",
       "name": "unreal-object-model",
       "summary": "Use when you must reason about UObject, UClass, UFunction, FName and properties, or locate a target in an object dump.",
