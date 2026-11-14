@@ -78,9 +78,10 @@ While developing a mod, set the UE4SS debug console on and visible, so script er
 ConsoleEnabled = 1
 GuiConsoleEnabled = 1
 GuiConsoleVisible = 1
+GraphicsAPI = dx11
 ```
 
-`gmf run unreal.setup_ue4ss` applies this development profile after it installs UE4SS (pass `--input development=false` to skip it). On an existing install run `gmf run unreal.ue4ss_settings --input profile=development`; it is a game write, needs a `gameWrite` authorization, and backs up the ini first. Before handing a game back for normal play, `--input profile=release` turns the three keys off. Keep the default `GraphicsAPI = opengl`; **observed** on one UE 5.6 game, the GUI console with OpenGL crashed the game at startup and `GraphicsAPI = dx11` fixed it. Change the backend only for a game that shows that crash, and record it in that game's note under `knowledge/games/`. The keys live in the game's `UE4SS-settings.ini`, not in a mod, so a packaged mod is not affected.
+`gmf run unreal.setup_ue4ss` applies this development profile after it installs UE4SS (pass `--input development=false` to skip it). On an existing install run `gmf run unreal.ue4ss_settings --input profile=development`; it is a game write, needs a `gameWrite` authorization, and backs up the ini first. Before handing a game back for normal play, `--input profile=release` turns the console keys off. The profile sets `GraphicsAPI = dx11` because the UE4SS default, OpenGL, crashed two games at startup (**observed** on a UE 5.6 and a UE 5.5 game): the GUI console window and the Steam overlay hook the same calls and recurse until the stack overflows, which the crash report shows as `EXCEPTION_STACK_OVERFLOW` with a long run of `gameoverlayrenderer64` frames. The crash is intermittent, so one clean start with OpenGL proves nothing. If a game misbehaves with DX11, try `GraphicsAPI = opengl` and record the result in that game's note under `knowledge/games/`. The keys live in the game's `UE4SS-settings.ini`, not in a mod, so a packaged mod is not affected.
 
 ### Applying the dumper settings
 

@@ -24,7 +24,7 @@ function setup(name) {
 }
 
 test("the development profile turns on the three UE4SS debug console keys and release turns them off", () => {
-  assert.deepEqual(UE4SS_PROFILES.development.Debug, { ConsoleEnabled: 1, GuiConsoleEnabled: 1, GuiConsoleVisible: 1 });
+  assert.deepEqual(UE4SS_PROFILES.development.Debug, { ConsoleEnabled: 1, GuiConsoleEnabled: 1, GuiConsoleVisible: 1, GraphicsAPI: "dx11" });
   assert.deepEqual(UE4SS_PROFILES.release.Debug, { ConsoleEnabled: 0, GuiConsoleEnabled: 0, GuiConsoleVisible: 0 });
 });
 

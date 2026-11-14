@@ -2586,6 +2586,10 @@
             "type": "boolean",
             "description": "Close the game when the run has finished. Default true."
           },
+          "removeDumper": {
+            "type": "boolean",
+            "description": "After a verified run, wait for the game to close and remove Mods/GmfDumper (backed up first); deploy it again for the next dump. Default true."
+          },
           "removeGameCopy": {
             "type": "boolean",
             "description": "Remove the run from <ue4ss>/Dumps once its workspace copy passes unreal.verify_dump. Default true."
@@ -2809,7 +2813,7 @@
     {
       "id": "unreal.ue4ss_settings",
       "title": "Apply a UE4SS settings profile",
-      "summary": "Set the UE4SS debug console keys in UE4SS-settings.ini: the development profile turns ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible on, the release profile turns them off. Backs up the ini first.",
+      "summary": "Set the UE4SS debug console keys in UE4SS-settings.ini: the development profile turns ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible on and sets GraphicsAPI = dx11, the release profile turns the console off. Backs up the ini first.",
       "engine": "unreal",
       "inputs": {
         "type": "object",

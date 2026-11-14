@@ -48,7 +48,9 @@ work reads those pages instead of guessing.
    `--input gameExe=<path>` when neither has it.
 
 Cleanup is automatic. `unreal.run_dump` removes the run from `<ue4ss>/Dumps`
-once the workspace copy verifies (`--input removeGameCopy=false` keeps it).
+once the workspace copy verifies (`--input removeGameCopy=false` keeps it), then
+waits for the game to close and removes the one-time GmfDumper mod, backed up
+first (`--input removeDumper=false` keeps it). Deploy it again for the next dump.
 `unreal.build_docs` removes the run files its pages distilled, when the run
 verified and no section is missing (`--input prune=false` keeps them). Tool
 inputs stay: usmap and jmap, C++ headers, Lua types, the Blueprint SDK, the

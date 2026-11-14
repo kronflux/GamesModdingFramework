@@ -400,3 +400,58 @@ test("the steam app id is read from the profile's game.store, where game_profile
   assert.equal(result.ok, true, result.error?.message);
   assert.deepEqual(stub.launches(), [["openUrl", "steam://rungameid/3712080"]]);
 });
+
+test("after a verified run the dumper is removed once the game has closed, with every file backed up", async () => {
+  const env = setup("dumper-gone");
+  fs.mkdirSync(path.join(env.mod, "dlls"), { recursive: true });
+  fs.writeFileSync(path.join(env.mod, "dlls", "main.dll"), "dll");
+  const stub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) writeRun(env.ue4ss, "Game-Win64-20261114-130000", {}, { finished: "x", steps: [] });
+    },
+    running: [true, false],
+  });
+  const result = await run(env, stub);
+  assert.equal(result.ok, true, result.error?.message);
+  assert.equal(result.data.dumper.removed, true);
+  assert.equal(result.data.dumper.files, 3, "main.lua, config.lua and main.dll");
+  assert.equal(fs.existsSync(env.mod), false, "Mods/GmfDumper is gone");
+  const backups = fs.readdirSync(path.join(env.workspace.root, "backups"));
+  assert.ok(backups.some((name) => name.endsWith("main.dll")), "the dll was backed up first");
+});
+
+test("the dumper stays while the game keeps running, when the run did not verify, and when removeDumper is false", async () => {
+  const running = setup("dumper-running");
+  const runningStub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) writeRun(running.ue4ss, "Game-Win64-20261114-140000", {}, { finished: "x", steps: [] });
+    },
+    running: [true],
+  });
+  const stillRunning = await run(running, runningStub);
+  assert.equal(stillRunning.data.dumper.removed, false);
+  assert.match(stillRunning.data.dumper.reason, /still running/);
+  assert.ok(fs.existsSync(running.mod));
+
+  const bad = setup("dumper-bad");
+  const badStub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) writeRun(bad.ue4ss, "Game-Win64-20261114-150000", {});
+    },
+    running: [true, false],
+  });
+  const unverified = await run(bad, badStub);
+  assert.match(unverified.data.dumper.reason, /did not verify/);
+  assert.ok(fs.existsSync(bad.mod));
+
+  const off = setup("dumper-off");
+  const offStub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) writeRun(off.ue4ss, "Game-Win64-20261114-160000", {}, { finished: "x", steps: [] });
+    },
+    running: [true, false],
+  });
+  const kept = await run(off, offStub, { removeDumper: false });
+  assert.deepEqual(kept.data.dumper, { removed: false, reason: "removeDumper is false" });
+  assert.ok(fs.existsSync(off.mod));
+});

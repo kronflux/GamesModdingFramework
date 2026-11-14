@@ -15,6 +15,42 @@ import { verifyRun } from "./verify_dump.mjs";
 
 // The run in the game folder duplicates its workspace copy. It is removed only when that copy
 // passes verification, so a bad copy never leaves the run without a good one.
+// How long a finished run waits for the game to close before the dumper is removed. The
+// game closes itself after an automatic run; its native DLL cannot be deleted while loaded.
+const DUMPER_EXIT_WAIT_MS = 60_000;
+
+function listFiles(dir, found = []) {
+  for (const entry of safeReaddir(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) listFiles(full, found);
+    else found.push(full);
+  }
+  return found;
+}
+
+// GmfDumper is used once per game build, so after a verified run it is removed from the game
+// like unreal.remove_mod does: every file is backed up into the workspace first. It waits for
+// the game to close, because the loaded native part cannot be deleted while the game runs.
+export async function removeDumper(requested, context, modDir, { processes, clock, exe }) {
+  if (requested === false) return { removed: false, reason: "removeDumper is false" };
+  if (!modDir || !fs.existsSync(modDir)) return { removed: false, reason: "the dumper is not deployed" };
+  const deadline = clock.now() + DUMPER_EXIT_WAIT_MS;
+  while (exe && (await processes.isExecutableRunning(exe))) {
+    if (clock.now() >= deadline) {
+      return { removed: false, reason: "the game is still running; remove it later with unreal.remove_mod --input name=GmfDumper" };
+    }
+    await clock.sleep(POLL_MS);
+  }
+  const files = listFiles(modDir);
+  const backups = files.map((file) => backupFile(context.workspace, file).backupPath);
+  try {
+    fs.rmSync(modDir, { recursive: true, force: true });
+  } catch (error) {
+    return { removed: false, reason: `the dumper could not be removed: ${error.message}`, backups };
+  }
+  return { removed: true, path: modDir, files: files.length };
+}
+
 export function removeGameCopy(requested, gameRunDir, workspaceRunDir) {
   if (requested === false) return { removed: false, reason: "removeGameCopy is false" };
   const verified = verifyRun(workspaceRunDir);
@@ -99,6 +135,10 @@ export const runDumpOperation = {
       gameDir: { type: "string" },
       profile: { type: "string", description: "full (default) or quick." },
       quitWhenDone: { type: "boolean", description: "Close the game when the run has finished. Default true." },
+      removeDumper: {
+        type: "boolean",
+        description: "After a verified run, wait for the game to close and remove Mods/GmfDumper (backed up first); deploy it again for the next dump. Default true.",
+      },
       removeGameCopy: {
         type: "boolean",
         description: "Remove the run from <ue4ss>/Dumps once its workspace copy passes unreal.verify_dump. Default true.",
@@ -206,7 +246,10 @@ export const runDumpOperation = {
         if (summary.produced === true) {
           const collected = collectRun(loader.path, workspaceRoot(context), { run: done.name });
           const gameCopy = removeGameCopy(inputs.removeGameCopy, done.path, collected.path);
-          return finish("complete", launch, { run: done.name, collected, gameCopy });
+          const dumper = gameCopy.removed || inputs.removeGameCopy === false
+            ? await removeDumper(inputs.removeDumper, context, modDir, { processes, clock, exe })
+            : { removed: false, reason: "the run did not verify, so the dumper stays for another run" };
+          return finish("complete", launch, { run: done.name, collected, gameCopy, dumper });
         }
         return finish("empty", launch, { run: done.name, manifestReasons: manifestReasons(done.path) });
       }

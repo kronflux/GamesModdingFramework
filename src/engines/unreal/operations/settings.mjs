@@ -2,8 +2,12 @@
 //
 // During development the UE4SS debug console and its GUI should be on and
 // visible, so script errors and dumps are seen as they happen. The development
-// profile sets ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible to 1; the
-// release profile turns them off.
+// profile sets ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible to 1 and
+// draws the GUI with DX11; the release profile turns the console off.
+//
+// GraphicsAPI = dx11: with the default OpenGL window the GUI console and the Steam
+// overlay hook the same calls and can recurse until the stack overflows at startup
+// (observed on Funnel Runners, UE 5.6, and The Cabin Game, UE 5.5).
 
 import fs from "node:fs";
 import path from "node:path";
@@ -16,7 +20,9 @@ import { mergeIniKeys } from "./dump.mjs";
 import { authorizationContext } from "./setup_ue4ss.mjs";
 
 export const UE4SS_PROFILES = Object.freeze({
-  development: Object.freeze({ Debug: Object.freeze({ ConsoleEnabled: 1, GuiConsoleEnabled: 1, GuiConsoleVisible: 1 }) }),
+  development: Object.freeze({
+    Debug: Object.freeze({ ConsoleEnabled: 1, GuiConsoleEnabled: 1, GuiConsoleVisible: 1, GraphicsAPI: "dx11" }),
+  }),
   release: Object.freeze({ Debug: Object.freeze({ ConsoleEnabled: 0, GuiConsoleEnabled: 0, GuiConsoleVisible: 0 }) }),
 });
 
@@ -67,7 +73,7 @@ export const ue4ssSettingsOperation = {
   id: "unreal.ue4ss_settings",
   title: "Apply a UE4SS settings profile",
   summary:
-    "Set the UE4SS debug console keys in UE4SS-settings.ini: the development profile turns ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible on, the release profile turns them off. Backs up the ini first.",
+    "Set the UE4SS debug console keys in UE4SS-settings.ini: the development profile turns ConsoleEnabled, GuiConsoleEnabled and GuiConsoleVisible on and sets GraphicsAPI = dx11, the release profile turns the console off. Backs up the ini first.",
   engine: "unreal",
   inputs: {
     type: "object",
