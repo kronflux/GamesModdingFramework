@@ -49,7 +49,7 @@ test("iniConsoleValues reads console sections, scalability groups and device pro
     "",
   ].join("\r\n"));
   write(path.join(text, "pakchunk0", "Game", "Config", "DefaultDeviceProfiles.ini"),
-    "[Windows DeviceProfile]\n+CVars=r.ViewDistanceScale=0.8\n");
+    "[Windows DeviceProfile]\n+CVars=r.ViewDistanceScale=0.8\n[Android DeviceProfile]\n+CVars=r.MobileOnly=1\n");
   const values = iniConsoleValues(text);
   assert.deepEqual([...values.keys()].sort(), ["r.MotionBlurQuality", "r.Shadow.MaxResolution", "r.ViewDistanceScale"]);
   assert.deepEqual(values.get("r.Shadow.MaxResolution"), [

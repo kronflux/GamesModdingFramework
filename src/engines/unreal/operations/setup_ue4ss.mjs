@@ -7,6 +7,7 @@ import { installTool } from "../../../core/tools.mjs";
 import { evidence } from "../../../core/evidence.mjs";
 import { detectUe4ss, findBinariesDir } from "../detect.mjs";
 import { applyUe4ssProfile } from "./settings.mjs";
+import { mergeIniKeys, parseIniEntries } from "./dump.mjs";
 import {
   copyTreeWithBackup,
   gmfError,
@@ -22,6 +23,7 @@ export const EFFECTS = ["read", "network", "toolInstall", "gameWrite"];
 const UE4SS_CHANNEL = "experimental-latest";
 
 const INSTALL_RECORD = "gmf-install.json";
+const SETTINGS_FILE = "UE4SS-settings.ini";
 const INSTALL_SCHEMA = "gmf.ue4ss_install/1";
 
 // The record of the release installed into a UE4SS folder, or null when it is missing, unreadable or not ours.
@@ -46,6 +48,82 @@ function digestOf(verification) {
 
 export function authorizationContext(context) {
   return { plan: context?.plan || activePlan(context || {}), overrides: authorizationOverrides(context || {}) };
+}
+
+// The user's UE4SS-settings.ini values that an update would reset: every key of the old file
+// that the new file also has, with a different value, is written back. Keys the new release
+// dropped are not brought back. Returns the text to write and the "Section.Key" names kept.
+export function keepUserSettings(newText, oldText) {
+  const fresh = new Map(parseIniEntries(newText).map((e) => [`${e.section}.${e.key}`.toLowerCase(), e.value]));
+  const kept = parseIniEntries(oldText).filter((e) => {
+    const value = fresh.get(`${e.section}.${e.key}`.toLowerCase());
+    return value !== undefined && value !== e.value;
+  });
+  const fragment = kept.map((e) => `[${e.section}]\n${e.key} = ${e.value}\n`).join("");
+  return { text: kept.length ? mergeIniKeys(newText, fragment) : newText, kept: kept.map((e) => `${e.section}.${e.key}`) };
+}
+
+const MOD_LINE = /^\s*([^:;#\s][^:]*?)\s*:\s*([01])\s*$/;
+
+// The user's mods.txt choices that an update would reset: a mod the new file lists keeps the old
+// 0 or 1, and a mod only the old file lists is added above the built-in Keybinds line.
+export function keepModStates(newText, oldText) {
+  const eol = newText.includes("\r\n") ? "\r\n" : "\n";
+  const lines = newText.replace(/(\r?\n)$/, "").split(/\r?\n/);
+  const old = new Map();
+  for (const line of oldText.split(/\r?\n/)) {
+    const match = MOD_LINE.exec(line);
+    if (match) old.set(match[1].toLowerCase(), { name: match[1], state: match[2] });
+  }
+  const seen = new Set();
+  for (let i = 0; i < lines.length; i += 1) {
+    const match = MOD_LINE.exec(lines[i]);
+    if (!match) continue;
+    const key = match[1].toLowerCase();
+    seen.add(key);
+    if (old.has(key) && old.get(key).state !== match[2]) lines[i] = `${match[1]} : ${old.get(key).state}`;
+  }
+  const added = [...old.entries()].filter(([key]) => !seen.has(key)).map(([, mod]) => `${mod.name} : ${mod.state}`);
+  if (added.length) {
+    let at = lines.findIndex((line) => /^\s*;\s*Built-in keybinds/i.test(line) || /^\s*Keybinds\s*:/i.test(line));
+    if (at < 0) at = lines.length;
+    lines.splice(at, 0, ...added);
+  }
+  return lines.join(eol) + eol;
+}
+
+// Reads the files an update must not reset, before the new release is copied over them.
+function readUserFiles(targetRoot) {
+  const read = (name) => {
+    try {
+      return fs.readFileSync(path.join(targetRoot, name), "utf8");
+    } catch {
+      return null;
+    }
+  };
+  return { settings: read(SETTINGS_FILE), mods: read(path.join("Mods", "mods.txt")) };
+}
+
+// Writes the user's values back over the files the new release brought. The release files were
+// backed up by the copy, so the backups hold the user's own versions.
+function restoreUserFiles(targetRoot, saved) {
+  const result = { keptSettings: [], keptMods: false };
+  const settingsPath = path.join(targetRoot, SETTINGS_FILE);
+  if (saved.settings !== null && fs.existsSync(settingsPath)) {
+    const { text, kept } = keepUserSettings(fs.readFileSync(settingsPath, "utf8"), saved.settings);
+    if (kept.length) fs.writeFileSync(settingsPath, text);
+    result.keptSettings = kept;
+  }
+  const modsPath = path.join(targetRoot, "Mods", "mods.txt");
+  if (saved.mods !== null && fs.existsSync(modsPath)) {
+    const current = fs.readFileSync(modsPath, "utf8");
+    const text = keepModStates(current, saved.mods);
+    if (text !== current) {
+      fs.writeFileSync(modsPath, text);
+      result.keptMods = true;
+    }
+  }
+  return result;
 }
 
 function installTree(context, sourceDir, targetDir) {
@@ -137,16 +215,12 @@ export const setupUe4ssOperation = {
     // ue4ss/ folder; both must sit next to the shipping executable. Older
     // archives hold UE4SS.dll at their root and install into <Binaries>/ue4ss.
     const layout = isDirectory(path.join(sourceRoot, "ue4ss")) ? "v3" : "flat";
-    let targetRoot;
-    let copied;
-    if (layout === "v3") {
-      targetRoot = path.join(binaries, "ue4ss");
-      copied = installTree(context, sourceRoot, binaries);
-    } else {
-      targetRoot = existing.path || path.join(binaries, "ue4ss");
-      copied = installTree(context, sourceRoot, targetRoot);
-    }
+    const targetRoot = layout === "v3" ? path.join(binaries, "ue4ss") : existing.path || path.join(binaries, "ue4ss");
+    const saved = readUserFiles(targetRoot);
+    const copied = installTree(context, sourceRoot, layout === "v3" ? binaries : targetRoot);
     fs.mkdirSync(path.join(targetRoot, "Mods"), { recursive: true });
+    // An update keeps the user's settings and mod choices; the release only adds what is new.
+    const userFiles = restoreUserFiles(targetRoot, saved);
 
     // During mod development the UE4SS console and GUI should be visible.
     let settingsProfile = null;
@@ -184,6 +258,8 @@ export const setupUe4ssOperation = {
         mode: existing.installed ? "updated" : "installed",
         layout,
         settingsProfile,
+        keptSettings: userFiles.keptSettings,
+        keptModStates: userFiles.keptMods,
         release: installed.release || null,
         backups: copied.filter((record) => record && record.backup).map((record) => record.backup),
         files: copied.length,

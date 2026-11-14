@@ -10,6 +10,7 @@
 - A Node docs builder turns a run into Markdown pages under `gamedocs/`; start at `gamedocs/overview.md`. The skill `unreal-first-dump` and the knowledge notes `unreal.gamedocs`, `unreal.gmfdumper.native`, `unreal.asset-export` and `unreal.blueprint-mods.suzie` describe the flow.
 - The pre-write hook judges loader-looking file names only inside the workspace, and guards `gamedocs/` like `dumps/`. The session start message points at `gamedocs/overview.md` when it exists.
 - Removed: the old GmfDumper wrapper and its `GmfDumper_report.txt`.
+- `unreal.setup_ue4ss` on an existing install keeps the user's `UE4SS-settings.ini` values (for example `GraphicsAPI = dx11`) for every key the new release still has, and their `Mods/mods.txt` choices; it reports them as `keptSettings` and `keptModStates`. Before, an update reset both to the release defaults.
 - `unreal.build_docs` writes `console/`: console variable names read from the game executable, by prefix, with the values the game's ini files set. Input `gameExe` overrides the executable; the default is the run's `game_exe`, then the profile's. A live dump of the console variable registry is not included: UE4SS does not expose the console manager, and shipping builds compile out the commands that list it.
 
 ## 0.1.0

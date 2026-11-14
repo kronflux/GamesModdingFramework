@@ -497,3 +497,23 @@ test("readUe4ssInstall returns null without the file, on bad JSON and on a wrong
   fs.writeFileSync(path.join(dir, "gmf-install.json"), JSON.stringify({ schema: "other/1", asset: "a.zip" }));
   assert.equal(readUe4ssInstall(dir), null);
 });
+
+test("an update keeps the user's UE4SS settings that the new release still has, and drops removed keys", async () => {
+  const { keepUserSettings } = await import("../src/engines/unreal/operations/setup_ue4ss.mjs");
+  const fresh = "[Debug]\r\nGraphicsAPI = opengl\r\nNewKey = 1\r\n\r\n[General]\r\nEnableHotReloadSystem = 0\r\n";
+  const old = "[Debug]\nGraphicsAPI = dx11\nRemovedKey = 5\n[General]\nEnableHotReloadSystem = 0\n";
+  const { text, kept } = keepUserSettings(fresh, old);
+  assert.deepEqual(kept, ["Debug.GraphicsAPI"]);
+  assert.match(text, /^GraphicsAPI = dx11\r$/m);
+  assert.match(text, /^NewKey = 1\r$/m, "keys new in the release stay");
+  assert.doesNotMatch(text, /RemovedKey/, "keys the release dropped are not brought back");
+  assert.equal(keepUserSettings(fresh, fresh).text, fresh, "nothing changes when the values agree");
+});
+
+test("an update keeps the user's mods.txt choices and adds their own mods above Keybinds", async () => {
+  const { keepModStates } = await import("../src/engines/unreal/operations/setup_ue4ss.mjs");
+  const fresh = "CheatManagerEnablerMod : 1\nLineTraceMod : 0\n\n; Built-in keybinds, do not move up!\nKeybinds : 1\n";
+  const old = "CheatManagerEnablerMod : 0\nLineTraceMod : 0\nMyMod : 1\nKeybinds : 1\n";
+  assert.equal(keepModStates(fresh, old),
+    "CheatManagerEnablerMod : 0\nLineTraceMod : 0\n\nMyMod : 1\n; Built-in keybinds, do not move up!\nKeybinds : 1\n");
+});

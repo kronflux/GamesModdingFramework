@@ -131,7 +131,8 @@ function detectEol(text) {
   return text.includes("\r\n") ? "\r\n" : "\n";
 }
 
-function parseFragment(fragment) {
+// The [section] key = value entries of an ini text, in order; comments are skipped.
+export function parseIniEntries(fragment) {
   const entries = [];
   let section = null;
   for (const raw of fragment.split(/\r?\n/)) {
@@ -154,7 +155,7 @@ function parseFragment(fragment) {
 export function mergeIniKeys(existing, fragment) {
   const eol = detectEol(existing);
   const lines = existing.length === 0 ? [] : existing.replace(/(\r?\n)$/, "").split(/\r?\n/);
-  for (const { section, key, value } of parseFragment(fragment)) {
+  for (const { section, key, value } of parseIniEntries(fragment)) {
     const wanted = `${key} = ${value}`;
     let start = -1;
     let end = lines.length;

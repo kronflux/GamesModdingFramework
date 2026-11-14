@@ -54,6 +54,12 @@ function isConsoleSection(name) {
   return name === "SystemSettings" || name === "ConsoleVariables" || /^[A-Za-z]+@[0-9A-Za-z]+$/.test(name);
 }
 
+// Device profiles for other platforms (Android, IOS, consoles) do not apply to a Windows build.
+function appliesOnWindows(section) {
+  const profile = /^(.*) DeviceProfile$/.exec(section)?.[1];
+  return profile === undefined || /^(Windows|GlobalDefaults)/i.test(profile);
+}
+
 /**
  * Console variable values set by the ini files under `textDir`: name -> [{ value, file, section }].
  * Device profiles give theirs as `CVars=name=value` lines.
@@ -77,7 +83,7 @@ export function iniConsoleValues(textDir) {
         if (op === "-" || op === "!") continue;
         if (isConsoleSection(section.name) && NAME.test(key)) {
           push(key, { value, file: relative, section: section.name });
-        } else if (key === "CVars") {
+        } else if (key === "CVars" && appliesOnWindows(section.name)) {
           const eq = value.indexOf("=");
           const name = eq < 0 ? "" : value.slice(0, eq).trim();
           if (NAME.test(name)) push(name, { value: value.slice(eq + 1).trim(), file: relative, section: section.name });
@@ -158,10 +164,14 @@ export function write(docs) {
   if (set.length) {
     index.push("## Set by the game's ini files\n");
     index.push("| Name | Value | File | Section |\n|---|---|---|---|");
+    // The game's own ini files first, then the engine's defaults.
+    const rows = [];
     for (const name of set) {
-      for (const entry of values.get(name)) {
-        index.push(`| \`${cell(name)}\` | \`${cell(entry.value)}\` | ${cell(entry.file)} | ${cell(entry.section)} |`);
-      }
+      for (const entry of values.get(name)) rows.push({ name, ...entry, engine: /(^|\/)Engine\//.test(entry.file) });
+    }
+    rows.sort((a, b) => Number(a.engine) - Number(b.engine));
+    for (const row of rows) {
+      index.push(`| \`${cell(row.name)}\` | \`${cell(row.value)}\` | ${cell(row.file)} | ${cell(row.section)} |`);
     }
     index.push("");
   }
