@@ -1883,6 +1883,10 @@
           "outputDir": {
             "type": "string",
             "description": "Folder inside the workspace. Default: gamedocs."
+          },
+          "gameExe": {
+            "type": "string",
+            "description": "The game executable the console variable names are read from. Default: the run's game_exe, then the profile's executable."
           }
         },
         "required": []

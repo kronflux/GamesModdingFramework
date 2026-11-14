@@ -35,6 +35,32 @@ export function resolveDocsDir(root, outputDir) {
 }
 
 // What is at `dir`: nothing, an empty folder, an earlier docs build, someone else's folder, or a file.
+function isFile(file) {
+  try {
+    return fs.statSync(file).isFile();
+  } catch {
+    return false;
+  }
+}
+
+// The game executable for the console section: the input, then the executable the run recorded,
+// then the profile's. Null when none of them is a file; the section then reports it missing.
+export function findGameExe(inputs, runDir, context) {
+  let recorded = null;
+  try {
+    recorded = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"))?.game_exe ?? null;
+  } catch {
+    // An unreadable manifest fails the build elsewhere.
+  }
+  const candidates = [
+    inputs.gameExe,
+    recorded,
+    context?.workspace?.profile?.paths?.executable,
+    context?.profile?.paths?.executable,
+  ];
+  return candidates.find((file) => typeof file === "string" && file && isFile(file)) ?? null;
+}
+
 function stateOf(dir, fsx) {
   let stat;
   try {
@@ -101,6 +127,10 @@ export const buildDocsOperation = {
     properties: {
       run: { type: "string", description: "Run folder name under dumps/unreal/runs, or an absolute path. Default: the newest run by name." },
       outputDir: { type: "string", description: "Folder inside the workspace. Default: gamedocs." },
+      gameExe: {
+        type: "string",
+        description: "The game executable the console variable names are read from. Default: the run's game_exe, then the profile's executable.",
+      },
     },
     required: [],
   },
@@ -139,7 +169,10 @@ export const buildDocsOperation = {
       // The marker goes in first, so an interrupted build is still recognized as ours.
       fs.mkdirSync(building, { recursive: true });
       fs.writeFileSync(path.join(building, MARKER), `${JSON.stringify({ schema: MARKER_SCHEMA, run: name, built_at: new Date().toISOString() }, null, 2)}\n`);
-      built = await buildDocs(dir, building, { textDir: fs.existsSync(textDir) ? textDir : null });
+      built = await buildDocs(dir, building, {
+        textDir: fs.existsSync(textDir) ? textDir : null,
+        gameExe: findGameExe(inputs, dir, context),
+      });
     } catch (error) {
       fs.rmSync(building, { recursive: true, force: true });
       throw gmfError("GMF-E-EXEC-001", `The docs build failed: ${error.message}`, "Check the run with unreal.verify_dump.");

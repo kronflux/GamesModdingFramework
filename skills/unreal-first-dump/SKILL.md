@@ -43,7 +43,9 @@ work reads those pages instead of guessing.
 6. Read the text files inside the paks:
    `gmf run unreal.read_containers --input gameDir=<game folder>`.
 7. Build the docs: `gmf run unreal.build_docs`. Read `gamedocs/overview.md`
-   first (`gmf knowledge show unreal.gamedocs`).
+   first (`gmf knowledge show unreal.gamedocs`). The console variable pages
+   read the game executable named by the run or the profile; pass
+   `--input gameExe=<path>` when neither has it.
 
 A user may start the game themselves instead of steps 3 and 4. GmfDumper runs
 by itself once the game reaches its menu. Then run the `collect=true` command

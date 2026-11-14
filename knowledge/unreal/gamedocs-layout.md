@@ -42,7 +42,8 @@ lists the parts.
 | What is running right now (game mode, controller, pawn, HUD)? | `world/` |
 | How are the UI widgets built? | `ui/` |
 | Which config classes read which ini values? | `config/` |
-| What do the game's ini files set, including console variables? | `settings/<file>.md` |
+| What do the game's ini files set? | `settings/<file>.md` |
+| Which console variables exist, and which do the ini files set? | `console/overview.md`, `console/<prefix>.md` |
 | What text does the game show, per language? | `localization/<culture>/<namespace>.md` |
 | Which plugins does the game ship? | `plugins.md` |
 | Which assets exist, by folder and class? | `assets/` |
@@ -55,5 +56,8 @@ lists the parts.
   data, so no game code ran for them.
 - Bytecode pages show structure (if, loops, sequences) where it could be
   recovered and a flat listing otherwise. Statement order is never changed.
-- The engine's full console variable list is not dumped; `settings/` shows the
-  ones the game's ini files set.
+- Console variable names are read from the game executable, because a
+  shipping build has no command that lists them (`DumpConsoleCommands` and
+  `help` are compiled out). The list has no help text and no live values, and
+  it holds some names that are not console variables, such as stat names. A
+  name with a value from an ini file is a real console variable.

@@ -33,6 +33,7 @@ import * as assets from "./sections/assets.mjs";
 import * as overview from "./sections/overview.mjs";
 import * as assetValues from "./sections/asset_values.mjs";
 import { containerPages } from "./sections/containers.mjs";
+import * as consoleSection from "./sections/console.mjs";
 
 const SCHEMA_PREFIXES = ["omnidumper.", "gmfdumper."];
 const LINK = /\]\(([^)#]+)(?:#[^)]*)?\)/g;
@@ -67,6 +68,11 @@ export const SECTIONS = [
   {
     name: "containers", write: writeContainers, inputs: [], steps: [],
     missing: (docs) => (docs.textDir && existsSync(docs.textDir) ? null : "containers not read; run unreal.read_containers"),
+  },
+  // Names read from the game executable, with values from the pak text.
+  {
+    name: "console", write: consoleSection.write, inputs: [], steps: [],
+    missing: (docs) => (docs.gameExe && isFile(docs.gameExe) ? null : "the game executable was not found"),
   },
   { name: "overview", write: overview.write, inputs: [], steps: [] },
 ];
@@ -124,6 +130,7 @@ export class Docs {
     this.out = outDir;
     this.log = options.log ?? (() => {});
     this.textDir = options.textDir ?? null;  // extracted pak text, for the containers section
+    this.gameExe = options.gameExe ?? null;  // the game executable, for the console section
     this.missing = [];                       // [{ name, reason }] of sections without input
     this.files = new Map();      // relative file -> text
     this.records = [];           // search records
@@ -510,6 +517,8 @@ export class Docs {
  * into `outDir` only and checks nothing about it. `options.log` receives progress lines;
  * `options.textDir` is the folder unreal.read_containers extracted pak text into
  * (`<workspace>/extracted/unreal/text`); without it the containers section is reported missing.
+ * `options.gameExe` is the game executable the console section reads names from; without it
+ * that section is reported missing.
  */
 export async function buildDocs(runDir, outDir, options = {}) {
   if (!existsSync(join(runDir, "manifest.json"))) throw new Error(`no manifest.json in ${runDir}`);

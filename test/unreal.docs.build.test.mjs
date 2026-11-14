@@ -406,7 +406,7 @@ test("a folder without a manifest is refused", async () => {
 test("sections report their pages, and a section without input is missing with the manifest's reason", async () => {
   const byName = new Map(result.sections.map((s) => [s.name, s]));
   assert.deepEqual(result.sections.map((s) => s.name),
-    ["defaults", "scripts", "reflection", "data", "world", "asset_values", "levels", "tags", "assets", "containers", "overview"]);
+    ["defaults", "scripts", "reflection", "data", "world", "asset_values", "levels", "tags", "assets", "containers", "console", "overview"]);
   assert.equal(byName.get("scripts").pages, 1);
   assert.ok(byName.get("defaults").pages >= 1, "the level value pages are counted for the defaults section");
   assert.equal(byName.get("world").missing, "not collected");
