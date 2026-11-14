@@ -77,6 +77,17 @@ test("the deployed mod is the full dumper: entry script, modules, vendored JSON 
   assert.equal(fs.existsSync(path.join(repoRoot, "templates/unreal/dumper/Mods/shared")), false, "UEHelpers is no longer part of the payload");
 });
 
+test("the shipped settings fragment turns off UE4SS's own asset loading and has no mod section", () => {
+  const fragment = fs.readFileSync(path.join(repoRoot, "templates/unreal/dumper/UE4SS-settings.dumpers.ini"), "utf8");
+  const merged = mergeIniKeys("", fragment);
+  assert.match(merged, /\[ObjectDumper\][^[]*UseModuleOffsets = 1/);
+  assert.match(merged, /\[ObjectDumper\][^[]*LoadAllAssetsBeforeDumpingObjects = 0/);
+  assert.match(merged, /\[CXXHeaderGenerator\][^[]*LoadAllAssetsBeforeGeneratingCXXHeaders = 0/);
+  assert.match(merged, /\[Hooks\][^[]*HookProcessConsoleExec = 1/);
+  assert.doesNotMatch(fragment, /^\[GmfDumper\]/m);
+  assert.doesNotMatch(fragment, /DumpKey/);
+});
+
 test("mergeIniKeys changes only keys in the fragment and appends missing ones", () => {
   const existing = "[General]\nbUseUObjectArrayCache = 1\n\n[ObjectDumper]\nUseModuleOffsets = 0\nOther = 5\n";
   const fragment = "; comment\n[ObjectDumper]\nUseModuleOffsets = 1\nLoadAllAssetsBeforeDumpingObjects = 0\n[Debug]\nConsoleEnabled = 1\n";

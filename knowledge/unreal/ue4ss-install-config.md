@@ -84,7 +84,7 @@ GuiConsoleVisible = 1
 
 ### Applying the dumper settings
 
-The dumper settings are a documented **fragment**, not a full settings file. It carries only the keys GmfDumper needs: `UseModuleOffsets = 1` under `[ObjectDumper]`, `HookProcessConsoleExec = 1` under `[Hooks]` and `DumpKey = F8` under `[GmfDumper]`. Open the game's real `UE4SS-settings.ini` and merge only those keys into their matching sections, overwriting just them. Never replace the real file with the fragment and never touch keys it does not mention (mods paths, hot reload, engine version overrides).
+The dumper settings are a documented **fragment**, not a full settings file. It carries only the keys GmfDumper needs: `UseModuleOffsets = 1` and `LoadAllAssetsBeforeDumpingObjects = 0` under `[ObjectDumper]`, `LoadAllAssetsBeforeGeneratingCXXHeaders = 0` under `[CXXHeaderGenerator]` and `HookProcessConsoleExec = 1` under `[Hooks]`. The two `LoadAllAssetsBefore*` keys stay at 0 because GmfDumper loads every asset itself, once, and a 1 would make UE4SS load them a second time. GmfDumper's own settings, such as the dump key, are in `Mods/GmfDumper/config.lua`. `gmf run unreal.deploy_dumper` merges the fragment; by hand, open the game's real `UE4SS-settings.ini` and merge only those keys into their matching sections, overwriting just them. Never replace the real file with the fragment and never touch keys it does not mention (mods paths, hot reload, engine version overrides).
 
 ## Enabling mods
 
