@@ -1887,6 +1887,10 @@
           "gameExe": {
             "type": "string",
             "description": "The game executable the console variable names are read from. Default: the run's game_exe, then the profile's executable."
+          },
+          "prune": {
+            "type": "boolean",
+            "description": "After a build with no missing section, from a run that passes unreal.verify_dump, remove the run files the docs distilled (tool inputs such as usmap, jmap, headers, Lua types, SDK and the object dump stay). Default true."
           }
         },
         "required": []
@@ -2581,6 +2585,10 @@
           "quitWhenDone": {
             "type": "boolean",
             "description": "Close the game when the run has finished. Default true."
+          },
+          "removeGameCopy": {
+            "type": "boolean",
+            "description": "Remove the run from <ue4ss>/Dumps once its workspace copy passes unreal.verify_dump. Default true."
           },
           "waitMinutes": {
             "type": "number",

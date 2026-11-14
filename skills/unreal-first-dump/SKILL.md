@@ -47,6 +47,14 @@ work reads those pages instead of guessing.
    read the game executable named by the run or the profile; pass
    `--input gameExe=<path>` when neither has it.
 
+Cleanup is automatic. `unreal.run_dump` removes the run from `<ue4ss>/Dumps`
+once the workspace copy verifies (`--input removeGameCopy=false` keeps it).
+`unreal.build_docs` removes the run files its pages distilled, when the run
+verified and no section is missing (`--input prune=false` keeps them). Tool
+inputs stay: usmap and jmap, C++ headers, Lua types, the Blueprint SDK, the
+object dump, the hook list and the name table. A pruned run records
+`pruned.json` and cannot build docs again; dump again to rebuild them.
+
 A user may start the game themselves instead of steps 3 and 4. GmfDumper runs
 by itself once the game reaches its menu. Then run the `collect=true` command
 from step 4.

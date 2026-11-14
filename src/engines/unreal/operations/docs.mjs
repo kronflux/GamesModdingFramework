@@ -10,9 +10,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { evidence } from "../../../core/evidence.mjs";
 import { isInside } from "../../../core/fsutil.mjs";
-import { buildDocs } from "../docs/build.mjs";
+import { buildDocs, DISTILLED } from "../docs/build.mjs";
 import { gmfError, workspaceRoot } from "./shared.mjs";
-import { resolveRun } from "./verify_dump.mjs";
+import { PRUNED_FILE, PRUNED_SCHEMA, resolveRun, verifyRun } from "./verify_dump.mjs";
 
 const MARKER = ".gmfdocs";
 const MARKER_SCHEMA = "gmf.docs/1";
@@ -59,6 +59,42 @@ export function findGameExe(inputs, runDir, context) {
     context?.profile?.paths?.executable,
   ];
   return candidates.find((file) => typeof file === "string" && file && isFile(file)) ?? null;
+}
+
+function sizeOf(target) {
+  const stat = fs.statSync(target);
+  if (!stat.isDirectory()) return stat.size;
+  let total = 0;
+  for (const entry of fs.readdirSync(target)) total += sizeOf(path.join(target, entry));
+  return total;
+}
+
+// Removes the files the docs distilled from a collected run, and records them in pruned.json.
+// Only a run under the workspace runs folder is pruned, only when it passed verification before
+// the build, and only when no section was missing, so nothing a page needed is lost.
+export function pruneRun(runDir, runsRoot, { verified, missing, docs }) {
+  if (!isInside(path.resolve(runsRoot), path.resolve(runDir))) return { done: false, reason: "the run is not in dumps/unreal/runs" };
+  if (!verified.pass) return { done: false, reason: `the run did not pass verification: ${verified.problems[0]}` };
+  if (missing.length) return { done: false, reason: `sections are missing: ${missing.map((entry) => entry.name).join(", ")}` };
+  const removed = [];
+  let bytes = 0;
+  for (const entry of DISTILLED) {
+    const target = path.join(runDir, ...entry.split("/").filter(Boolean));
+    if (!fs.existsSync(target)) continue;
+    bytes += sizeOf(target);
+    fs.rmSync(target, { recursive: true, force: true });
+    removed.push(entry);
+    // A folder the removal left empty goes too, up to the run folder.
+    for (let parent = path.dirname(target); parent !== runDir && isInside(runDir, parent); parent = path.dirname(parent)) {
+      if (fs.readdirSync(parent).length > 0) break;
+      fs.rmdirSync(parent);
+    }
+  }
+  fs.writeFileSync(
+    path.join(runDir, PRUNED_FILE),
+    `${JSON.stringify({ schema: PRUNED_SCHEMA, pruned_at: new Date().toISOString(), docs, bytes, removed }, null, 2)}\n`,
+  );
+  return { done: true, removed, bytes };
 }
 
 function stateOf(dir, fsx) {
@@ -131,6 +167,10 @@ export const buildDocsOperation = {
         type: "string",
         description: "The game executable the console variable names are read from. Default: the run's game_exe, then the profile's executable.",
       },
+      prune: {
+        type: "boolean",
+        description: "After a build with no missing section, from a run that passes unreal.verify_dump, remove the run files the docs distilled (tool inputs such as usmap, jmap, headers, Lua types, SDK and the object dump stay). Default true.",
+      },
     },
     required: [],
   },
@@ -159,6 +199,14 @@ export const buildDocsOperation = {
     const old = `${target}${OLD_SUFFIX}`;
     for (const dir of [target, building, old]) assertReplaceable(dir, fsx);
     const { name, dir } = resolveRun(inputs.run, context);
+    if (fs.existsSync(path.join(dir, PRUNED_FILE))) {
+      throw gmfError(
+        "GMF-E-PLAN-001",
+        `The run ${name} was pruned after its docs were built, so it can no longer build docs.`,
+        "Dump again with unreal.run_dump, then build the docs from the new run.",
+      );
+    }
+    const verified = verifyRun(dir);
     const textDir = path.join(root, "extracted", "unreal", "text");
 
     // Leftovers of an interrupted build; both were checked to be ours or empty.
@@ -189,8 +237,11 @@ export const buildDocsOperation = {
     swapIn(target, building, old, fsx);
 
     const missing = built.sections.filter((section) => section.missing).map((section) => ({ name: section.name, reason: section.missing }));
+    const pruned = inputs.prune === false
+      ? { done: false, reason: "prune is false" }
+      : pruneRun(dir, path.join(root, "dumps", "unreal", "runs"), { verified, missing, docs: target });
     return {
-      data: { outputDir: target, run: name, files: built.files, bytes: built.bytes, sections: built.sections, missing },
+      data: { outputDir: target, run: name, files: built.files, bytes: built.bytes, sections: built.sections, missing, pruned },
       evidence: [
         evidence({
           claim: `Docs for run ${name}: ${built.files} files in ${target}.`,

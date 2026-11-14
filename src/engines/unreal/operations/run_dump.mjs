@@ -11,6 +11,17 @@ import { detectStore } from "../../../core/profile.mjs";
 import { detectUe4ss, findBinariesDir, findShippingExe } from "../detect.mjs";
 import { gmfError, resolveGameDirInput, workspaceRoot } from "./shared.mjs";
 import { collectRun, listRuns } from "./dump.mjs";
+import { verifyRun } from "./verify_dump.mjs";
+
+// The run in the game folder duplicates its workspace copy. It is removed only when that copy
+// passes verification, so a bad copy never leaves the run without a good one.
+export function removeGameCopy(requested, gameRunDir, workspaceRunDir) {
+  if (requested === false) return { removed: false, reason: "removeGameCopy is false" };
+  const verified = verifyRun(workspaceRunDir);
+  if (!verified.pass) return { removed: false, reason: `the workspace copy did not pass verification: ${verified.problems[0]}` };
+  fs.rmSync(gameRunDir, { recursive: true, force: true });
+  return { removed: true, path: gameRunDir };
+}
 
 const POLL_MS = 2000;
 const LOG_TAIL_LINES = 40;
@@ -88,6 +99,10 @@ export const runDumpOperation = {
       gameDir: { type: "string" },
       profile: { type: "string", description: "full (default) or quick." },
       quitWhenDone: { type: "boolean", description: "Close the game when the run has finished. Default true." },
+      removeGameCopy: {
+        type: "boolean",
+        description: "Remove the run from <ue4ss>/Dumps once its workspace copy passes unreal.verify_dump. Default true.",
+      },
       waitMinutes: { type: "number", description: "How long to wait for the run before returning status running. Default 10." },
     },
     required: [],
@@ -160,7 +175,8 @@ export const runDumpOperation = {
     const knownCrashes = new Set(crashDumps(crashDirs));
 
     // The app id comes from files in the game folder, so only a plain number is sent to Steam.
-    const found = context.profile?.store?.appId || context.workspace?.profile?.store?.appId || detectStore(gameDir).appId || null;
+    const found = context.profile?.store?.appId || context.profile?.game?.store?.appId
+      || context.workspace?.profile?.store?.appId || context.workspace?.profile?.game?.store?.appId || detectStore(gameDir).appId || null;
     const appId = /^[0-9]{1,12}$/.test(String(found ?? "")) ? String(found) : null;
     let launch;
     try {
@@ -189,7 +205,8 @@ export const runDumpOperation = {
         const summary = readJsonObject(path.join(done.path, "run_complete.json"));
         if (summary.produced === true) {
           const collected = collectRun(loader.path, workspaceRoot(context), { run: done.name });
-          return finish("complete", launch, { run: done.name, collected });
+          const gameCopy = removeGameCopy(inputs.removeGameCopy, done.path, collected.path);
+          return finish("complete", launch, { run: done.name, collected, gameCopy });
         }
         return finish("empty", launch, { run: done.name, manifestReasons: manifestReasons(done.path) });
       }

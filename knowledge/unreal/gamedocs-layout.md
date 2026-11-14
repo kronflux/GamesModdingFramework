@@ -52,6 +52,10 @@ lists the parts.
 ## Limits
 
 - A page describes the build that was dumped. Dump again after a game update.
+- The run files a page was made from are removed after the build (see
+  `pruned.json` in the run folder); the pages are then their only copy. Tool
+  inputs stay in `dumps/unreal/runs/<run>/`: `Mappings/` (usmap, jmap),
+  `Headers/`, `LuaTypes/`, `SDK/`, `Objects/`, `Hooks/` and `Names/fnames.csv`.
 - Values come from memory at dump time. Level pages come from maps loaded as
   data, so no game code ran for them.
 - Bytecode pages show structure (if, loops, sequences) where it could be

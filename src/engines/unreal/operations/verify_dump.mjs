@@ -9,6 +9,24 @@ import fs from "node:fs";
 import path from "node:path";
 import { gmfError, workspaceRoot } from "./shared.mjs";
 
+// Written by unreal.build_docs when it removes the files its docs distilled.
+export const PRUNED_FILE = "pruned.json";
+export const PRUNED_SCHEMA = "gmf.pruned_run/1";
+
+// The entries of pruned.json: run paths the docs build removed, folders ending in "/".
+function prunedPaths(runDir) {
+  try {
+    const record = readJson(path.join(runDir, PRUNED_FILE));
+    return record?.schema === PRUNED_SCHEMA && Array.isArray(record.removed) ? record.removed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isPruned(relative, pruned) {
+  return pruned.some((entry) => (entry.endsWith("/") ? relative === entry.slice(0, -1) || relative.startsWith(entry) : relative === entry));
+}
+
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
@@ -41,6 +59,7 @@ export function verifyRun(runDir) {
   if (!manifest || typeof manifest !== "object") {
     return { pass: false, problems: ["cannot read manifest.json: not a JSON object"] };
   }
+  const pruned = prunedPaths(runDir);
   if (!manifest.finished) problems.push("the run did not finish: manifest.json has no 'finished' time");
 
   for (const step of Array.isArray(manifest.steps) ? manifest.steps : []) {
@@ -60,6 +79,7 @@ export function verifyRun(runDir) {
       problems.push(`step ${step.id}: skipped with no reason`);
     }
     for (const entry of Array.isArray(step.files) ? step.files : []) {
+      if (isPruned(String(entry?.path ?? ""), pruned)) continue;
       checkFile(step.id, entry, runDir, problems);
     }
   }

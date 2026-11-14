@@ -77,6 +77,21 @@ export const SECTIONS = [
   { name: "overview", write: overview.write, inputs: [], steps: [] },
 ];
 
+/**
+ * The run files the sections turn into pages and nothing else reads. After a build in which no
+ * section is missing they can be removed from the collected run. An entry ending in "/" is a
+ * folder. Everything else in a run (usmap and jmap, headers, Lua types, the SDK, the object dump,
+ * the hook list, the name table, the UE4SS CSV dumps) is a tool input or not fully distilled, and
+ * stays.
+ */
+export const DISTILLED = [
+  "Reflection/classes.json", "Reflection/structs.json", "Reflection/enums.json", "Reflection/functions.json",
+  "Reflection/class_defaults.jsonl", "Scripts/bytecode.jsonl", "Levels/",
+  "World/actors.json", "World/runtime.json", "World/map_tour.json", "World/actor_values.jsonl",
+  "DataTables/", "DataAssets/data_assets.jsonl", "DataAssets/curves.jsonl", "Config/config_objects.jsonl",
+  "UI/widget_trees.json", "Assets/asset_values.jsonl", "Assets/asset_registry.json", "Names/gameplay_tags.txt",
+];
+
 const CONTAINER_SUMMARY = {
   settings: (source) => `settings file ${source}`,
   localization: (source) => `localized text from ${source}`,

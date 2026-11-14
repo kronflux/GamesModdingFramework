@@ -351,3 +351,52 @@ test("a game that cannot be started is reported at once, without waiting", async
   assert.match(result.error.message, /could not be started/);
   assert.equal(stub.sleeps?.() ?? 0, 0, "no polling happened");
 });
+
+test("a complete run is removed from the game folder once its workspace copy verifies, and kept otherwise", async () => {
+  const good = setup("copy-good");
+  let gameRun = null;
+  const goodStub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) gameRun = writeRun(good.ue4ss, "Game-Win64-20261114-100000", {}, { finished: "2026-11-14T10:00:00", steps: [] });
+    },
+    running: [true],
+  });
+  const removed = await run(good, goodStub);
+  assert.equal(removed.ok, true, removed.error?.message);
+  assert.deepEqual(removed.data.gameCopy, { removed: true, path: gameRun });
+  assert.equal(fs.existsSync(gameRun), false, "the game folder copy is gone");
+  assert.ok(fs.existsSync(path.join(removed.data.collected.path, "run_complete.json")), "the workspace copy stays");
+
+  const bad = setup("copy-bad");
+  let badRun = null;
+  const badStub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) badRun = writeRun(bad.ue4ss, "Game-Win64-20261114-110000", {});
+    },
+    running: [true],
+  });
+  const kept = await run(bad, badStub);
+  assert.equal(kept.data.gameCopy.removed, false);
+  assert.match(kept.data.gameCopy.reason, /did not pass verification: cannot read manifest\.json/);
+  assert.ok(fs.existsSync(badRun), "a run whose copy does not verify stays in the game folder");
+
+  const off = setup("copy-off");
+  let offRun = null;
+  const offStub = stubs({
+    onSleep: (tick) => {
+      if (tick === 1) offRun = writeRun(off.ue4ss, "Game-Win64-20261114-120000", {}, { finished: "x", steps: [] });
+    },
+    running: [true],
+  });
+  const off2 = await run(off, offStub, { removeGameCopy: false });
+  assert.deepEqual(off2.data.gameCopy, { removed: false, reason: "removeGameCopy is false" });
+  assert.ok(fs.existsSync(offRun));
+});
+
+test("the steam app id is read from the profile's game.store, where game_profile writes it", async () => {
+  const env = setup("steam-game");
+  const stub = stubs({ running: [true] });
+  const result = await run(env, stub, { waitMinutes: 0.1 }, AUTH, { profile: { game: { store: { id: "steam", appId: "3712080" } } } });
+  assert.equal(result.ok, true, result.error?.message);
+  assert.deepEqual(stub.launches(), [["openUrl", "steam://rungameid/3712080"]]);
+});
