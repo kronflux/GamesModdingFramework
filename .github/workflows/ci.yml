@@ -19,6 +19,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      # The gate scans the working tree, so it runs before Lua is installed into it.
+      - name: Game content and secret gate
+        run: node scripts/pre-commit.mjs
       # The GmfDumper mod has Lua unit tests (test/dumper). They use Windows paths, so they run on
       # the Windows jobs. If Lua cannot be set up, the Lua test is skipped and the job goes on.
       - uses: ilammy/msvc-dev-cmd@v1
@@ -31,5 +34,3 @@ jobs:
           luaVersion: "5.4"
       - name: Catalog, host files and tests
         run: npm run check
-      - name: Game content and secret gate
-        run: node scripts/pre-commit.mjs

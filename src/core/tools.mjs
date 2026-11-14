@@ -191,11 +191,21 @@ export function tarCommand(platform = process.platform, env = process.env, exist
   return exists(systemTar) ? systemTar : "tar";
 }
 
+// The command that extracts an archive. Outside Windows tar is GNU tar, which cannot read zip
+// files, so a zip goes to unzip there.
+export function extractCommand(archive, destination, platform = process.platform) {
+  if (platform !== "win32" && /[.]zip$/i.test(archive)) {
+    return { command: "unzip", args: ["-q", "-o", archive, "-d", destination] };
+  }
+  return { command: tarCommand(platform), args: ["-xf", archive, "-C", destination] };
+}
+
 function extractArchive(archive, destination) {
   fs.mkdirSync(destination, { recursive: true });
-  const result = spawnSync(tarCommand(), ["-xf", archive, "-C", destination], { encoding: "utf8", windowsHide: true });
+  const { command, args } = extractCommand(archive, destination);
+  const result = spawnSync(command, args, { encoding: "utf8", windowsHide: true });
   if (result.status !== 0) {
-    throw new Error(`Archive extraction failed: ${result.stderr || result.error?.message || "tar"}`);
+    throw new Error(`Archive extraction failed: ${result.stderr || result.error?.message || command}`);
   }
   // A link entry could point a later entry outside the destination.
   const link = findSymlink(destination);

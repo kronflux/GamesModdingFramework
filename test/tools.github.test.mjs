@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { installTool, tarCommand } from "../src/core/tools.mjs";
+import { extractCommand, installTool, tarCommand } from "../src/core/tools.mjs";
 import { tempDir } from "./helpers/tmp.mjs";
 import { snapshotTree } from "./helpers/tree.mjs";
 
@@ -90,6 +90,9 @@ test("archives are extracted with the Windows bsdtar on win32, not a GNU tar fro
   assert.equal(tarCommand("win32", { SystemRoot: systemRoot }, () => true), path.join(systemRoot, "System32", "tar.exe"));
   assert.equal(tarCommand("win32", { SystemRoot: systemRoot }, () => false), "tar");
   assert.equal(tarCommand("linux", {}, () => true), "tar");
+  assert.deepEqual(extractCommand("/c/a.zip", "/d", "linux"), { command: "unzip", args: ["-q", "-o", "/c/a.zip", "-d", "/d"] });
+  assert.deepEqual(extractCommand("/c/a.tar.gz", "/d", "linux"), { command: "tar", args: ["-xf", "/c/a.tar.gz", "-C", "/d"] });
+  assert.equal(extractCommand("C:/c/a.zip", "C:/d", "win32").args[0], "-xf");
 });
 
 test("a tool with per-platform assets installs the asset for this platform", async (t) => {
